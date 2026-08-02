@@ -72,16 +72,46 @@
             <div class="challenge-dots" aria-hidden="true">
               <span data-challenge-dot="0"></span>
               <span data-challenge-dot="1"></span>
+              <span data-challenge-dot="2"></span>
             </div>
           </div>
           <h2 id="break-challenge-title">Do you really need this break?</h2>
           <p id="break-challenge-message" class="break-challenge-message"></p>
-          <div class="challenge-actions">
+          <div id="reflection-actions" class="challenge-actions">
             <button id="challenge-return-button" class="primary-button" type="button">
               Return to my focus
             </button>
-            <button id="challenge-continue-button" class="secondary-button" type="button"></button>
+            <button
+              id="challenge-continue-button"
+              class="secondary-button hold-button"
+              type="button"
+            >
+              <span class="hold-button-fill" aria-hidden="true"></span>
+              <span id="challenge-hold-label" class="hold-button-label"></span>
+            </button>
           </div>
+
+          <form id="mini-challenge-form" class="mini-challenge-form" hidden novalidate>
+            <p id="mini-challenge-prompt" class="mini-challenge-prompt"></p>
+            <label for="mini-challenge-answer">Your answer</label>
+            <input
+              id="mini-challenge-answer"
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              enterkeyhint="done"
+              aria-describedby="mini-challenge-feedback"
+            >
+            <p id="mini-challenge-feedback" class="mini-challenge-feedback" aria-live="polite"></p>
+            <div class="mini-challenge-actions">
+              <button id="challenge-final-return-button" class="primary-button" type="button">
+                Return to my focus
+              </button>
+              <button id="mini-challenge-submit" class="secondary-button" type="submit">
+                Check my answer
+              </button>
+            </div>
+          </form>
         </section>
 
         <p id="blocked-notice" class="blocked-notice" aria-live="polite"></p>

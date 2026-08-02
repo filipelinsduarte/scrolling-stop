@@ -3,11 +3,20 @@ import {
   advanceBreakChallenge,
   BREAK_CHALLENGE_STEPS,
   BREAK_DURATION_MINUTES,
+  BREAK_HOLD_DURATION_MS,
+  createBreakMiniChallenge,
   getBreakChallengeStep,
+  getBlockedSiteLabel,
+  isBreakMiniChallengeAnswer,
 } from "./src/break-challenge.js";
 
 let breakChallengeStepIndex = -1;
 let blockedDomain = null;
+let currentMiniChallenge = null;
+let holdIntervalId = null;
+let holdTimeoutId = null;
+let holdStartedAt = 0;
+let holdInProgress = false;
 
 function requireElement(id) {
   const element = document.getElementById(id);
@@ -107,7 +116,11 @@ function renderBreakChallenge(elements, stepIndex) {
   elements.challengeStepLabel.textContent = `Pause check ${stepIndex + 1} of ${BREAK_CHALLENGE_STEPS.length}`;
   elements.challengeTitle.textContent = step.title;
   elements.challengeMessage.textContent = step.message;
-  elements.challengeContinueButton.textContent = step.continueLabel;
+  elements.reflectionActions.hidden = false;
+  elements.miniChallengeForm.hidden = true;
+  elements.challengeContinueButton.disabled = false;
+  elements.challengeContinueButton.dataset.holdLabel = step.continueLabel;
+  resetHoldButton(elements);
 
   for (const dot of elements.challengeDots) {
     const dotIndex = Number(dot.dataset.challengeDot);
@@ -122,14 +135,139 @@ function renderBreakChallenge(elements, stepIndex) {
   });
 }
 
+function clearHoldTimers() {
+  if (holdIntervalId !== null) {
+    window.clearInterval(holdIntervalId);
+    holdIntervalId = null;
+  }
+  if (holdTimeoutId !== null) {
+    window.clearTimeout(holdTimeoutId);
+    holdTimeoutId = null;
+  }
+}
+
+function resetHoldButton(elements) {
+  clearHoldTimers();
+  holdInProgress = false;
+  elements.challengeContinueButton.classList.remove("is-holding");
+  elements.challengeContinueButton.style.setProperty("--hold-progress", "0");
+  elements.challengeHoldLabel.textContent =
+    elements.challengeContinueButton.dataset.holdLabel || "Hold for 5 seconds";
+}
+
+function updateHoldProgress(elements) {
+  const elapsedMs = Math.max(0, performance.now() - holdStartedAt);
+  const progress = Math.min(1, elapsedMs / BREAK_HOLD_DURATION_MS);
+  const remainingSeconds = Math.max(
+    1,
+    Math.ceil((BREAK_HOLD_DURATION_MS - elapsedMs) / 1000),
+  );
+
+  elements.challengeContinueButton.style.setProperty(
+    "--hold-progress",
+    String(progress),
+  );
+  elements.challengeHoldLabel.textContent = `Keep holding · ${remainingSeconds}s`;
+}
+
+async function completeHold(elements) {
+  if (!holdInProgress) {
+    return;
+  }
+
+  clearHoldTimers();
+  holdInProgress = false;
+  elements.challengeContinueButton.style.setProperty("--hold-progress", "1");
+  elements.challengeHoldLabel.textContent = "Hold complete";
+  elements.challengeContinueButton.disabled = true;
+  await handleBreakChallengeAdvance(elements);
+}
+
+function startHold(elements, event) {
+  if (holdInProgress || elements.challengeContinueButton.disabled) {
+    return;
+  }
+  if (event instanceof PointerEvent && event.button !== 0) {
+    return;
+  }
+
+  event.preventDefault();
+  holdInProgress = true;
+  holdStartedAt = performance.now();
+  elements.challengeContinueButton.classList.add("is-holding");
+  updateHoldProgress(elements);
+
+  holdIntervalId = window.setInterval(() => {
+    updateHoldProgress(elements);
+  }, 50);
+  holdTimeoutId = window.setTimeout(() => {
+    completeHold(elements);
+  }, BREAK_HOLD_DURATION_MS);
+}
+
+function cancelHold(elements, event) {
+  if (!holdInProgress) {
+    return;
+  }
+
+  event?.preventDefault();
+  resetHoldButton(elements);
+}
+
+function renderMiniChallenge(elements) {
+  currentMiniChallenge = createBreakMiniChallenge(blockedDomain);
+  const siteLabel = getBlockedSiteLabel(blockedDomain);
+
+  elements.challengeStepLabel.textContent = "Final check";
+  elements.challengeTitle.textContent = "One last intentional choice.";
+  elements.challengeMessage.textContent =
+    `Solve one quick question before opening ${siteLabel}.`;
+  elements.reflectionActions.hidden = true;
+  elements.miniChallengeForm.hidden = false;
+  elements.miniChallengePrompt.textContent = currentMiniChallenge.prompt;
+  elements.miniChallengeAnswer.value = "";
+  elements.miniChallengeFeedback.textContent = "";
+
+  for (const dot of elements.challengeDots) {
+    const dotIndex = Number(dot.dataset.challengeDot);
+    dot.classList.toggle("is-current", dotIndex === BREAK_CHALLENGE_STEPS.length);
+    dot.classList.toggle("is-complete", dotIndex < BREAK_CHALLENGE_STEPS.length);
+  }
+
+  elements.breakChallenge.classList.remove("is-entering");
+  window.requestAnimationFrame(() => {
+    elements.breakChallenge.classList.add("is-entering");
+    elements.miniChallengeAnswer.focus();
+  });
+}
+
 async function handleBreakChallengeAdvance(elements) {
   const action = advanceBreakChallenge(breakChallengeStepIndex);
-  if (!action.shouldStartBreak) {
+  if (!action.shouldShowChallenge) {
     renderBreakChallenge(elements, action.stepIndex);
     return;
   }
 
-  await pauseBlocking(elements.challengeContinueButton, elements.notice);
+  renderMiniChallenge(elements);
+}
+
+async function handleMiniChallengeSubmit(elements, event) {
+  event.preventDefault();
+  const answerIsCorrect = isBreakMiniChallengeAnswer(
+    currentMiniChallenge,
+    elements.miniChallengeAnswer.value,
+  );
+
+  if (!answerIsCorrect) {
+    elements.miniChallengeFeedback.textContent =
+      "Not quite. Take another moment and try again.";
+    elements.miniChallengeAnswer.select();
+    return;
+  }
+
+  elements.miniChallengeFeedback.textContent =
+    "Correct. Starting your intentional 2-minute break.";
+  await pauseBlocking(elements.miniChallengeSubmitButton, elements.notice);
 }
 
 async function pauseBlocking(pauseButton, notice) {
@@ -139,7 +277,10 @@ async function pauseBlocking(pauseButton, notice) {
     showNotice(notice, `Blocking is paused for ${BREAK_DURATION_MINUTES} minutes.`);
     window.setTimeout(goBack, 350);
   } catch (error) {
-    showNotice(notice, error.message);
+    const errorMessage = error.message === "Unknown extension action."
+      ? "Chrome is still running an older Scroll Stop worker. Reload Scroll Stop once in chrome://extensions, then try again."
+      : error.message;
+    showNotice(notice, errorMessage);
     pauseButton.disabled = false;
   }
 }
@@ -167,8 +308,16 @@ async function boot() {
     elements.challengeTitle = requireElement("break-challenge-title");
     elements.challengeMessage = requireElement("break-challenge-message");
     elements.challengeContinueButton = requireElement("challenge-continue-button");
+    elements.challengeHoldLabel = requireElement("challenge-hold-label");
     elements.challengeReturnButton = requireElement("challenge-return-button");
+    elements.challengeFinalReturnButton = requireElement("challenge-final-return-button");
     elements.challengeDots = document.querySelectorAll("[data-challenge-dot]");
+    elements.reflectionActions = requireElement("reflection-actions");
+    elements.miniChallengeForm = requireElement("mini-challenge-form");
+    elements.miniChallengePrompt = requireElement("mini-challenge-prompt");
+    elements.miniChallengeAnswer = requireElement("mini-challenge-answer");
+    elements.miniChallengeFeedback = requireElement("mini-challenge-feedback");
+    elements.miniChallengeSubmitButton = requireElement("mini-challenge-submit");
   });
 
   await bootStep("blocked attempt tracking", recordBlockedPageArrival);
@@ -184,8 +333,47 @@ async function boot() {
     elements.challengeReturnButton?.addEventListener("click", () => {
       returnToFocus(elements.notice);
     });
-    elements.challengeContinueButton?.addEventListener("click", () => {
-      handleBreakChallengeAdvance(elements);
+    elements.challengeFinalReturnButton?.addEventListener("click", () => {
+      returnToFocus(elements.notice);
+    });
+    elements.challengeContinueButton?.addEventListener("click", (event) => {
+      event.preventDefault();
+    });
+    elements.challengeContinueButton?.addEventListener("pointerdown", (event) => {
+      startHold(elements, event);
+    });
+    elements.challengeContinueButton?.addEventListener("pointerup", (event) => {
+      cancelHold(elements, event);
+    });
+    elements.challengeContinueButton?.addEventListener("pointercancel", (event) => {
+      cancelHold(elements, event);
+    });
+    elements.challengeContinueButton?.addEventListener("pointerleave", (event) => {
+      cancelHold(elements, event);
+    });
+    elements.challengeContinueButton?.addEventListener("keydown", (event) => {
+      if (event.key === " " || event.key === "Enter") {
+        startHold(elements, event);
+      }
+    });
+    elements.challengeContinueButton?.addEventListener("keyup", (event) => {
+      if (event.key === " " || event.key === "Enter") {
+        cancelHold(elements, event);
+      }
+    });
+    window.addEventListener("blur", () => {
+      cancelHold(elements);
+    });
+    window.addEventListener("pointerup", (event) => {
+      cancelHold(elements, event);
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        cancelHold(elements);
+      }
+    });
+    elements.miniChallengeForm?.addEventListener("submit", (event) => {
+      handleMiniChallengeSubmit(elements, event);
     });
   });
 }

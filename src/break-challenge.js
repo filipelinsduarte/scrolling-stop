@@ -1,14 +1,15 @@
 export const BREAK_DURATION_MINUTES = 2;
 export const BREAK_DURATION_MS = BREAK_DURATION_MINUTES * 60 * 1000;
+export const BREAK_HOLD_DURATION_MS = 5 * 1000;
 
 export const BREAK_CHALLENGE_STEPS = Object.freeze([
   Object.freeze({
     title: "Do you really need this break?",
-    continueLabel: "I still need a break",
+    continueLabel: "Hold for 5 seconds to continue",
   }),
   Object.freeze({
     title: "What will these 2 minutes cost?",
-    continueLabel: "Start my 2-minute break",
+    continueLabel: "Hold for 5 seconds to unlock the final check",
   }),
 ]);
 
@@ -78,12 +79,47 @@ export function advanceBreakChallenge(currentStepIndex) {
     ? currentStepIndex
     : -1;
   const nextStepIndex = safeStepIndex + 1;
-  const shouldStartBreak = nextStepIndex >= BREAK_CHALLENGE_STEPS.length;
+  const shouldShowChallenge = nextStepIndex >= BREAK_CHALLENGE_STEPS.length;
 
   return {
-    stepIndex: shouldStartBreak
+    stepIndex: shouldShowChallenge
       ? BREAK_CHALLENGE_STEPS.length - 1
       : nextStepIndex,
-    shouldStartBreak,
+    shouldShowChallenge,
   };
+}
+
+function hashChallengeSource(input) {
+  const source = typeof input === "string" ? input.trim().toLowerCase() : "";
+  let hash = 0;
+
+  for (const character of source) {
+    hash = ((hash * 31) + character.charCodeAt(0)) >>> 0;
+  }
+
+  return hash;
+}
+
+export function createBreakMiniChallenge(domain) {
+  const hash = hashChallengeSource(domain);
+  const firstNumber = 6 + (hash % 7);
+  const secondNumber = 4 + (Math.floor(hash / 7) % 9);
+
+  return {
+    prompt: `What is ${firstNumber} + ${secondNumber}?`,
+    answer: firstNumber + secondNumber,
+  };
+}
+
+export function isBreakMiniChallengeAnswer(challenge, input) {
+  if (!challenge || !Number.isInteger(challenge.answer)) {
+    return false;
+  }
+
+  const answerText = String(input ?? "").trim();
+  if (!/^\d+$/.test(answerText)) {
+    return false;
+  }
+
+  return Number(answerText) === challenge.answer;
 }

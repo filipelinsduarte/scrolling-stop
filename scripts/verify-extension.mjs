@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { chromium } from "playwright";
+import { createBreakMiniChallenge } from "../src/break-challenge.js";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectDirectory = path.resolve(scriptDirectory, "..");
@@ -34,6 +35,20 @@ async function waitForText(page, selector, expectedText) {
     },
     { targetSelector: selector, targetText: expectedText },
   );
+}
+
+async function holdButton(page, selector, durationMs) {
+  const button = page.locator(selector);
+  const buttonBox = await button.boundingBox();
+  assert(buttonBox, `Could not measure hold button ${selector}.`);
+
+  await page.mouse.move(
+    buttonBox.x + (buttonBox.width / 2),
+    buttonBox.y + (buttonBox.height / 2),
+  );
+  await page.mouse.down();
+  await page.waitForTimeout(durationMs);
+  await page.mouse.up();
 }
 
 async function auditLayout(page, selectors) {
@@ -332,6 +347,19 @@ try {
   });
 
   await blockedPage.locator("#challenge-continue-button").click();
+  await blockedPage.waitForTimeout(250);
+  assert(
+    await blockedPage.locator("#break-challenge-title").textContent()
+      === "Do you really need this break?",
+    "A single click incorrectly completed the first hold step.",
+  );
+  await holdButton(blockedPage, "#challenge-continue-button", 650);
+  assert(
+    await blockedPage.locator("#break-challenge-title").textContent()
+      === "Do you really need this break?",
+    "An interrupted hold incorrectly completed the first reflection step.",
+  );
+  await holdButton(blockedPage, "#challenge-continue-button", 5_150);
   await waitForText(
     blockedPage,
     "#break-challenge-title",
@@ -340,8 +368,8 @@ try {
   await waitForText(blockedPage, "#challenge-step-label", "Pause check 2 of 2");
   await waitForText(
     blockedPage,
-    "#challenge-continue-button",
-    "Start my 2-minute break",
+    "#challenge-hold-label",
+    "Hold for 5 seconds to unlock the final check",
   );
   await blockedPage.waitForTimeout(500);
   const secondChallengeState = await blockedPage.evaluate(() => {
@@ -367,7 +395,57 @@ try {
     `The break challenge has an unbalanced text wrap: ${JSON.stringify(challengeAudit.textFindings)}`,
   );
 
-  await blockedPage.locator("#challenge-continue-button").click();
+  await holdButton(blockedPage, "#challenge-continue-button", 5_150);
+  await waitForText(blockedPage, "#challenge-step-label", "Final check");
+  await waitForText(
+    blockedPage,
+    "#break-challenge-title",
+    "One last intentional choice.",
+  );
+  const linkedInMiniChallenge = createBreakMiniChallenge("linkedin.com");
+  await waitForText(
+    blockedPage,
+    "#mini-challenge-prompt",
+    linkedInMiniChallenge.prompt,
+  );
+  await blockedPage.locator("#mini-challenge-answer").fill("999");
+  await blockedPage.locator("#mini-challenge-submit").click();
+  await waitForText(
+    blockedPage,
+    "#mini-challenge-feedback",
+    "Not quite. Take another moment and try again.",
+  );
+  const stateAfterWrongAnswer = await blockedPage.evaluate(() => {
+    return chrome.runtime.sendMessage({ type: "getState" });
+  });
+  assert(
+    stateAfterWrongAnswer.ok
+      && !stateAfterWrongAnswer.data.isPaused
+      && !stateAfterWrongAnswer.data.hasSitePause
+      && stateAfterWrongAnswer.data.pauseRemainingMs === 0,
+    "An incorrect mini-challenge answer started the break.",
+  );
+  await blockedPage.setViewportSize({ width: 390, height: 844 });
+  const miniChallengeMobileAudit = await auditLayout(blockedPage, [
+    ".break-challenge h2",
+    ".break-challenge-message",
+    ".mini-challenge-prompt",
+    ".mini-challenge-actions .primary-button",
+    ".mini-challenge-actions .secondary-button",
+  ]);
+  assert(
+    miniChallengeMobileAudit.horizontalOverflow <= 0,
+    "The mini challenge has horizontal overflow on mobile.",
+  );
+  await blockedPage.screenshot({
+    path: path.join(projectDirectory, "artifacts", "break-mini-challenge.png"),
+    fullPage: true,
+  });
+  await blockedPage.setViewportSize({ width: 1440, height: 900 });
+  await blockedPage
+    .locator("#mini-challenge-answer")
+    .fill(String(linkedInMiniChallenge.answer));
+  await blockedPage.locator("#mini-challenge-submit").click();
   await blockedPage.waitForTimeout(500);
   const storedPause = await serviceWorker.evaluate(async () => {
     const settings = await chrome.storage.local.get([
@@ -613,6 +691,9 @@ try {
       focusBackNavigation: true,
       blockedGoalReminder: true,
       twoStepBreakChallenge: true,
+      fiveSecondHoldSteps: true,
+      breakMiniChallenge: true,
+      breakMiniChallengeMobileLayout: true,
       twoMinuteBreakLimit: true,
       siteScopedBreak: true,
       alreadyOpenTabEnforcement: true,

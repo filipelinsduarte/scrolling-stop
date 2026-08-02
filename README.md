@@ -4,7 +4,7 @@
 
 # Scroll Stop
 
-Scroll Stop is an open-source Chrome extension that interrupts distracting websites before the scroll starts. It brings your chosen focus goals back into view, adds two moments of reflection before a short break, and keeps a private attention report on your device.
+Scroll Stop is an open-source Chrome extension that interrupts distracting websites before the scroll starts. It brings your chosen focus goals back into view, adds two deliberate holds and a mini challenge before a short break, and keeps a private attention report on your device.
 
 LinkedIn, X, and the legacy Twitter domain are blocked by default. Add or remove any public website from the popup.
 
@@ -13,7 +13,7 @@ LinkedIn, X, and the legacy Twitter domain are blocked by default. Add or remove
 - Redirects blocked websites to a local reminder before their pages load.
 - Redirects blocked tabs that were already open when blocking is enabled again.
 - Shows the objectives you chose in the Focus Plan.
-- Requires two reflection steps before granting a 2-minute break.
+- Requires two continuous 5-second holds and a mini challenge before granting a 2-minute break.
 - Keeps each blocked-page break limited to the website that requested it.
 - Counts blocked attempts by website.
 - Shows focus returns, estimated time saved, and per-site charts.
@@ -73,7 +73,7 @@ Use $install-scroll-stop to install and customize Scroll Stop in Chrome.
 - Click **Block this site** while visiting another website to add it.
 - Remove websites from the Blocked sites list.
 - Use **Go back** when a blocked site interrupts you.
-- If access is genuinely needed, complete both reflection prompts to start a 2-minute break.
+- If access is genuinely needed, complete both 5-second holds and solve the final mini challenge to start a 2-minute break.
 
 Newly added websites use their favicon from Chrome's local favicon cache. The challenge copy also uses the website that triggered the interruption. For example, `reddit.com` appears as Reddit, `youtube.com` appears as YouTube, and custom domains receive a readable name derived from their domain.
 
@@ -99,7 +99,7 @@ npm run verify
 npm run verify:landing
 ```
 
-The unit suite covers domain normalization, open-tab matching, redirect attribution, dynamic website copy, analytics calculations, focus goals, the two-step break challenge, and serialized rule updates. The browser verification loads the unpacked extension in an isolated Chromium profile and checks the complete popup, favicon, and redirect flows.
+The unit suite covers domain normalization, open-tab matching, redirect attribution, dynamic website copy, analytics calculations, focus goals, the hold-and-solve break challenge, and serialized rule updates. The browser verification loads the unpacked extension in an isolated Chromium profile and checks the complete popup, favicon, and redirect flows.
 
 ## Project structure
 

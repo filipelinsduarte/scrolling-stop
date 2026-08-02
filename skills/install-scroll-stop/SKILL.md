@@ -54,7 +54,7 @@ Ask the user to click **Reload** on Scroll Stop in `chrome://extensions`. If Chr
 - Change initial blocked domains through `DEFAULT_SETTINGS.blockedDomains` in `src/blocker.js`.
 - Keep user-added domains in Chrome local storage rather than hardcoding them.
 - Preserve unlimited Focus Plan objectives unless the user explicitly requests a cap.
-- Preserve the two reflection steps and 2-minute break unless the user explicitly requests different behavior.
+- Preserve the two continuous 5-second reflection holds, final arithmetic challenge, and 2-minute break unless the user explicitly requests different behavior.
 - Keep blocked-page breaks site-specific. A break for one domain must not unblock any other domain. Keep only the popup pause global.
 - Preserve immediate enforcement for already-open blocked tabs through `getBlockedDomainForUrl` and the service-worker tab sync.
 - Preserve the native Chrome `_favicon` URL for every blocked website. Do not add an external favicon service or network dependency.

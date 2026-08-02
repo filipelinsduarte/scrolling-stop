@@ -208,7 +208,9 @@ h1 {
 }
 
 .blocked-default-content[hidden],
-.break-challenge[hidden] {
+.break-challenge[hidden],
+.challenge-actions[hidden],
+.mini-challenge-form[hidden] {
   display: none;
 }
 
@@ -373,6 +375,105 @@ h1 {
   opacity: 0.55;
 }
 
+.hold-button {
+  --hold-progress: 0;
+  position: relative;
+  min-height: 56px;
+  overflow: hidden;
+  isolation: isolate;
+  touch-action: none;
+  user-select: none;
+}
+
+.hold-button-fill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--gold-light) 58%, var(--white));
+  transform: scaleX(var(--hold-progress));
+  transform-origin: left center;
+}
+
+.hold-button-label {
+  position: relative;
+  z-index: 1;
+  line-height: 1.25;
+  pointer-events: none;
+}
+
+.hold-button.is-holding {
+  border-color: var(--gold);
+  box-shadow: 0 5px 0 var(--gold-dark);
+  transform: translateY(1px);
+}
+
+.mini-challenge-form {
+  width: 100%;
+  padding: 22px;
+  margin-top: 24px;
+  border: 2px solid color-mix(in srgb, var(--purple) 22%, var(--tan-soft));
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--purple-light) 20%, var(--white));
+  text-align: left;
+}
+
+.mini-challenge-prompt {
+  color: var(--ink);
+  font-family: var(--font-round);
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  text-align: center;
+}
+
+.mini-challenge-form label {
+  display: block;
+  margin-top: 18px;
+  color: var(--gray);
+  font-family: var(--font-round);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mini-challenge-form input {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 16px;
+  margin-top: 7px;
+  border: 2px solid var(--tan-soft);
+  border-radius: 17px;
+  outline: none;
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--font-round);
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.mini-challenge-form input:focus {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--purple) 15%, transparent);
+}
+
+.mini-challenge-feedback {
+  min-height: 19px;
+  margin-top: 9px;
+  color: var(--orange-dark);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.mini-challenge-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
 .blocked-notice {
   min-height: 18px;
   margin-top: 14px;
@@ -415,6 +516,10 @@ h1 {
   }
 
   .challenge-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .mini-challenge-actions {
     grid-template-columns: 1fr;
   }
 

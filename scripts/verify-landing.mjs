@@ -13,7 +13,7 @@ const downloadPath = path.join(
   projectDirectory,
   "docs",
   "downloads",
-  "scrolling-stop-extension-v1.5.2.zip",
+  "scrolling-stop-extension-v1.5.3.zip",
 );
 const artifactDirectory = path.join(projectDirectory, "artifacts");
 
@@ -202,7 +202,7 @@ try {
   );
   assert(
     await page.locator("a[download]").first().getAttribute("href")
-      === "downloads/scrolling-stop-extension-v1.5.2.zip",
+      === "downloads/scrolling-stop-extension-v1.5.3.zip",
     "The download CTA does not point to the packaged Chrome extension.",
   );
   assert(
