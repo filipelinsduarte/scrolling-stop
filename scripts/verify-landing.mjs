@@ -144,12 +144,12 @@ async function auditViewport(page, viewport, screenshotName) {
   );
   assert(
     audit.galleryFrameAspectRatios.length === 3
-      && audit.galleryFrameAspectRatios.every((ratio) => Math.abs(ratio - (4 / 3)) < 0.02),
+      && audit.galleryFrameAspectRatios.every((ratio) => Math.abs(ratio - (388 / 600)) < 0.02),
     `${viewport.width}px product gallery frames are not consistently proportioned.`,
   );
   assert(
-    audit.galleryImageObjectFits.every((objectFit) => objectFit === "cover"),
-    `${viewport.width}px product gallery images are stretched instead of cropped proportionally.`,
+    audit.galleryImageObjectFits.every((objectFit) => objectFit === "contain"),
+    `${viewport.width}px product gallery images are cropped instead of shown in full.`,
   );
   assert(
     audit.productScreenshotDensities.length === 4
