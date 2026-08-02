@@ -93,6 +93,9 @@ async function auditViewport(page, viewport, screenshotName) {
     const downloadButton = document.querySelector(".nav-download");
     const githubButton = document.querySelector(".nav-github");
     const chromeMark = downloadButton?.querySelector(".chrome-mark");
+    const productImage = document.querySelector(".product-card img");
+    const galleryFrames = [...document.querySelectorAll(".screen-shot")];
+    const galleryImages = [...document.querySelectorAll(".screen-shot img")];
     const images = [...document.images].map((image) => ({
       alt: image.alt,
       complete: image.complete,
@@ -108,6 +111,16 @@ async function auditViewport(page, viewport, screenshotName) {
       heroHeadingLastLineWords: measureLastLineWords(heroHeading),
       heroHeadingWidth: heroHeading?.getBoundingClientRect().width ?? 0,
       heroFocusLineWidth: heroHeadingContext?.measureText("Return to focus.").width ?? 0,
+      productImageAspectRatio: productImage
+        ? productImage.getBoundingClientRect().width / productImage.getBoundingClientRect().height
+        : 0,
+      galleryFrameAspectRatios: galleryFrames.map((frame) => {
+        const rectangle = frame.getBoundingClientRect();
+        return rectangle.width / rectangle.height;
+      }),
+      galleryImageObjectFits: galleryImages.map((image) => {
+        return window.getComputedStyle(image).objectFit;
+      }),
       images,
     };
   });
@@ -120,6 +133,19 @@ async function auditViewport(page, viewport, screenshotName) {
   assert(audit.downloadVisible, `${viewport.width}px download CTA is hidden.`);
   assert(audit.githubVisible, `${viewport.width}px GitHub CTA is hidden.`);
   assert(audit.chromeMarkVisible, `${viewport.width}px Chrome mark is hidden.`);
+  assert(
+    Math.abs(audit.productImageAspectRatio - (379 / 596)) < 0.02,
+    `${viewport.width}px hero product image does not preserve its natural aspect ratio.`,
+  );
+  assert(
+    audit.galleryFrameAspectRatios.length === 3
+      && audit.galleryFrameAspectRatios.every((ratio) => Math.abs(ratio - (4 / 3)) < 0.02),
+    `${viewport.width}px product gallery frames are not consistently proportioned.`,
+  );
+  assert(
+    audit.galleryImageObjectFits.every((objectFit) => objectFit === "cover"),
+    `${viewport.width}px product gallery images are stretched instead of cropped proportionally.`,
+  );
   assert(
     audit.heroHeadingLastLineWords >= 2,
     `${viewport.width}px hero heading ends with a ${audit.heroHeadingLastLineWords}-word orphan line. `
@@ -212,6 +238,8 @@ try {
       topNavigationGithubCta: true,
       topNavigationOpenSourceLabel: true,
       authenticChromeMark: true,
+      proportionalHeroImage: true,
+      proportionalGalleryImages: true,
       downloadPackageExists: true,
       allImagesLoaded: true,
       consoleErrors: 0,

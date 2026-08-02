@@ -482,8 +482,12 @@ h3 {
 }
 
 .product-card img {
+  display: block;
   width: 100%;
+  height: auto;
+  aspect-ratio: 379 / 596;
   border-radius: 23px;
+  object-fit: contain;
 }
 
 .browser-cap {
@@ -1037,9 +1041,32 @@ h3 {
   background: var(--orange);
 }
 
-.screen-card img {
-  width: 100%;
+.screen-shot {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 1.5px solid var(--tan-soft);
   border-radius: 28px;
+  background: var(--warm);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+}
+
+.screen-shot::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 -18px 28px rgba(52, 52, 51, 0.04);
+  content: "";
+  pointer-events: none;
+}
+
+.screen-shot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  image-rendering: auto;
 }
 
 .screen-card figcaption {
