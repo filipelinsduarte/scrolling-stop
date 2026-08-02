@@ -6,7 +6,6 @@
   "description": "Block distracting sites and bring your own focus goals back when attention drifts.",
   "minimum_chrome_version": "120",
   "permissions": [
-    "activeTab",
     "alarms",
     "declarativeNetRequest",
     "favicon",
