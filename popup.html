@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Scroll Stop</title>
+    <link rel="stylesheet" href="styles/tokens.css">
+    <link rel="stylesheet" href="styles/popup.css">
+  </head>
+  <body>
+    <div class="popup-stage">
+      <main id="main-view" class="popup-view main-view app-shell" aria-hidden="false">
+        <header class="app-header">
+          <div class="brand-lockup">
+            <span class="brand-mark" aria-hidden="true">
+              <span class="brand-mark-light"></span>
+            </span>
+            <div>
+              <p class="eyebrow">Attention guard</p>
+              <h1>Scroll Stop</h1>
+            </div>
+          </div>
+          <label class="switch" aria-label="Turn blocking on or off">
+            <input id="enabled-toggle" type="checkbox">
+            <span class="switch-track" aria-hidden="true">
+              <span class="switch-thumb"></span>
+            </span>
+          </label>
+        </header>
+
+        <section class="status-panel" aria-labelledby="status-title">
+          <div class="status-copy">
+            <span class="status-dot" aria-hidden="true"></span>
+            <div>
+              <p id="status-title" class="status-title">Blocking is active</p>
+              <p id="status-detail" class="status-detail">Your detours stop before they start.</p>
+            </div>
+          </div>
+          <button id="pause-button" class="text-button" type="button">Pause 2 min</button>
+        </section>
+
+        <button id="block-current-button" class="primary-button" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3v18M3 12h18"></path>
+          </svg>
+          <span>Block this site</span>
+        </button>
+
+        <section class="focus-section" aria-labelledby="focus-heading">
+          <button id="focus-edit-button" class="focus-launch" type="button" aria-controls="focus-view">
+            <span class="focus-prop" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="8"></circle>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </span>
+            <div>
+              <p class="eyebrow">Your focus</p>
+              <h2 id="focus-heading">What matters now</h2>
+              <p id="focus-summary" class="focus-summary">Choose the work worth returning to.</p>
+            </div>
+            <span class="focus-action" aria-hidden="true">
+              <span id="focus-action-label">Set focus</span>
+              <span class="focus-arrow">
+                <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"></path></svg>
+              </span>
+            </span>
+          </button>
+        </section>
+
+        <section class="analytics-launch-section" aria-labelledby="analytics-launch-heading">
+          <button id="analytics-open-button" class="analytics-launch" type="button" aria-controls="analytics-view">
+            <span class="analytics-launch-prop" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M6 18V11M12 18V6M18 18V9"></path>
+              </svg>
+            </span>
+            <div>
+              <p class="eyebrow">Your patterns</p>
+              <h2 id="analytics-launch-heading">Attention report</h2>
+              <p id="analytics-launch-summary" class="analytics-launch-summary">No attempts recorded yet.</p>
+            </div>
+            <span class="analytics-launch-action" aria-hidden="true">
+              <span>View</span>
+              <span class="analytics-launch-arrow">
+                <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"></path></svg>
+              </span>
+            </span>
+          </button>
+        </section>
+
+        <section class="sites-section" aria-labelledby="sites-heading">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Your list</p>
+              <h2 id="sites-heading">Blocked sites</h2>
+            </div>
+            <span id="site-count" class="count-badge">0</span>
+          </div>
+
+          <ul id="site-list" class="site-list" aria-live="polite"></ul>
+
+          <form id="add-site-form" class="add-site-form" novalidate>
+            <label for="site-input" class="sr-only">Website to block</label>
+            <input
+              id="site-input"
+              name="site"
+              type="text"
+              inputmode="url"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Add a website"
+            >
+            <button type="submit" aria-label="Add website">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5v14M5 12h14"></path>
+              </svg>
+            </button>
+          </form>
+        </section>
+
+        <p id="notice" class="notice" aria-live="polite"></p>
+      </main>
+
+      <section id="focus-view" class="popup-view focus-view" aria-hidden="true" aria-labelledby="focus-page-title" inert>
+        <header class="focus-page-header">
+          <button id="focus-back-button" class="back-button" type="button" aria-label="Back to Scroll Stop">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg>
+          </button>
+          <span class="focus-page-label">Focus plan</span>
+          <span class="goal-limit">Up to 5</span>
+        </header>
+
+        <div class="focus-page-intro">
+          <span class="goal-prop" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="8"></circle>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </span>
+          <p class="eyebrow">Choose your targets</p>
+          <h2 id="focus-page-title">What do you want to get done?</h2>
+          <p>Turn the work pulling at you into a short, visible plan.</p>
+        </div>
+
+        <form id="focus-form" class="focus-page-form" novalidate>
+          <div id="goal-fields" class="goal-fields" aria-live="polite"></div>
+
+          <button id="add-goal-button" class="add-goal-button" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+            Add another objective
+          </button>
+
+          <p class="focus-privacy">Saved only in this browser.</p>
+          <button class="save-focus-button" type="submit">Save my focus</button>
+          <p id="focus-notice" class="focus-notice" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section id="analytics-view" class="popup-view analytics-view" aria-hidden="true" aria-labelledby="analytics-page-title" inert>
+        <header class="focus-page-header analytics-page-header">
+          <button id="analytics-back-button" class="back-button" type="button" aria-label="Back to Scroll Stop">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg>
+          </button>
+          <span class="focus-page-label">Attention report</span>
+          <span class="local-badge">Local only</span>
+        </header>
+
+        <div class="analytics-page-intro">
+          <div id="analytics-return-ring" class="analytics-return-ring" role="img" aria-label="0 percent returned to focus">
+            <div class="analytics-return-ring-inner">
+              <strong id="analytics-return-rate">0%</strong>
+              <span>returned</span>
+            </div>
+          </div>
+          <div>
+            <p class="eyebrow">Your attention, in numbers</p>
+            <h2 id="analytics-page-title">See the pull. Choose differently.</h2>
+            <p>See where your focus gets tested most.</p>
+          </div>
+        </div>
+
+        <section class="analytics-section" aria-labelledby="analytics-heading">
+          <div class="analytics-heading">
+            <div>
+              <p class="eyebrow">Your progress</p>
+              <h2 id="analytics-heading">Focus overview</h2>
+            </div>
+          </div>
+
+          <div class="analytics-stats">
+            <article class="analytics-stat analytics-stat-attempts">
+              <span class="analytics-stat-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 3v9m0 5.5v.5"></path><circle cx="12" cy="12" r="9"></circle></svg>
+              </span>
+              <strong id="analytics-attempts">0</strong>
+              <span>Attempts stopped</span>
+            </article>
+            <article class="analytics-stat analytics-stat-time">
+              <span class="analytics-stat-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l3 2M9 3h6"></path></svg>
+              </span>
+              <strong id="analytics-time-saved">0m</strong>
+              <span>Est. time saved</span>
+            </article>
+            <article class="analytics-stat analytics-stat-focus">
+              <span class="analytics-stat-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+              </span>
+              <strong id="analytics-focus-returns">0</strong>
+              <span>Focus returns</span>
+            </article>
+          </div>
+
+          <div class="analytics-breakdown-heading">
+            <div>
+              <p class="eyebrow">Share of attempts</p>
+              <h3>Where you get pulled</h3>
+            </div>
+          </div>
+          <ul id="analytics-domain-list" class="analytics-domain-list"></ul>
+          <p class="analytics-method">
+            Estimate: returning to focus saves 5 minutes. Stored locally.
+          </p>
+        </section>
+      </section>
+    </div>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

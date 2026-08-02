@@ -1,0 +1,4 @@
+interface:
+  display_name: "Install Scroll Stop"
+  short_description: "Install and customize the Scroll Stop extension"
+  default_prompt: "Use $install-scroll-stop to install and customize Scroll Stop in Chrome."

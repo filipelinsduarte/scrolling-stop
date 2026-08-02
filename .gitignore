@@ -1,0 +1,18 @@
+node_modules/
+artifacts/
+.DS_Store
+*.log
+.env
+.env.*
+*credentials*.json
+*.pem
+*.key
+
+# Local and superseded design exports
+images/icon 2.svg
+images/icon-16.png
+images/icon-32.png
+images/icon-48.png
+images/icon-128.png
+styles/blocked 2.css
+styles/popup 2.css

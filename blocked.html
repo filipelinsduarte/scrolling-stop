@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Take a breath | Scroll Stop</title>
+    <link rel="stylesheet" href="styles/tokens.css">
+    <link rel="stylesheet" href="styles/blocked.css">
+  </head>
+  <body>
+    <main class="blocked-shell">
+      <section class="blocked-card" aria-labelledby="blocked-title">
+        <div id="blocked-default-content" class="blocked-default-content">
+          <div class="pause-visual" aria-hidden="true">
+            <span class="pause-ring"></span>
+            <span class="pause-symbol">
+              <i></i>
+              <i></i>
+            </span>
+          </div>
+
+          <div class="blocked-copy">
+            <p class="eyebrow">Scroll stopped</p>
+            <h1 id="blocked-title">You came here on autopilot.</h1>
+            <p class="blocked-message">
+              Take one breath. What did you mean to do before opening this site?
+            </p>
+          </div>
+
+          <section class="focus-reminder" aria-labelledby="focus-reminder-title">
+            <div class="focus-reminder-heading">
+              <span class="focus-reminder-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="8"></circle>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </span>
+              <div>
+                <p class="eyebrow">Your focus</p>
+                <h2 id="focus-reminder-title">You said you would:</h2>
+              </div>
+            </div>
+            <ul id="focus-goal-list" class="focus-goal-list"></ul>
+            <p id="focus-empty" class="focus-empty">
+              Set your focus from the extension, then this pause can point you back.
+            </p>
+          </section>
+
+          <div class="blocked-actions">
+            <button id="go-back-button" class="primary-button" type="button">
+              Go back
+            </button>
+            <button id="pause-button" class="secondary-button" type="button">
+              I need 2 minutes
+            </button>
+          </div>
+        </div>
+
+        <section
+          id="break-challenge"
+          class="break-challenge"
+          aria-labelledby="break-challenge-title"
+          hidden
+        >
+          <div class="challenge-token" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="challenge-progress">
+            <p id="challenge-step-label" class="eyebrow">Pause check 1 of 2</p>
+            <div class="challenge-dots" aria-hidden="true">
+              <span data-challenge-dot="0"></span>
+              <span data-challenge-dot="1"></span>
+            </div>
+          </div>
+          <h2 id="break-challenge-title">Do you really need this break?</h2>
+          <p id="break-challenge-message" class="break-challenge-message"></p>
+          <div class="challenge-actions">
+            <button id="challenge-return-button" class="primary-button" type="button">
+              Return to my focus
+            </button>
+            <button id="challenge-continue-button" class="secondary-button" type="button"></button>
+          </div>
+        </section>
+
+        <p id="blocked-notice" class="blocked-notice" aria-live="polite"></p>
+      </section>
+      <p class="footer-mark">
+        <span aria-hidden="true"></span>
+        Protected by Scroll Stop
+      </p>
+    </main>
+    <script type="module" src="blocked.js"></script>
+  </body>
+</html>

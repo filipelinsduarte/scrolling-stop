@@ -1,0 +1,17 @@
+{
+  "name": "scroll-stop",
+  "version": "1.4.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "icons": "node scripts/generate-icons.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "node scripts/verify-extension.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1",
+    "sharp": "^0.35.3",
+    "vitest": "^3.2.4"
+  }
+}

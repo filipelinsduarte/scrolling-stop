@@ -1,0 +1,425 @@
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(245, 180, 66, 0.14), transparent 18%),
+    radial-gradient(circle at 88% 76%, rgba(149, 83, 249, 0.1), transparent 20%),
+    var(--warm);
+  color: var(--ink);
+}
+
+.blocked-shell {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 32px 20px;
+}
+
+.blocked-card {
+  position: relative;
+  width: min(100%, 560px);
+  padding: clamp(30px, 5vw, 48px);
+  border: 2px solid var(--tan-soft);
+  border-radius: 32px;
+  background: var(--white);
+  box-shadow: 0 14px 0 rgba(178, 167, 154, 0.18), 0 26px 54px rgba(52, 52, 51, 0.12);
+  text-align: center;
+}
+
+.pause-visual {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  margin: 0 auto 24px;
+}
+
+.pause-ring {
+  position: absolute;
+  inset: 0;
+  border: 2px dashed rgba(255, 83, 16, 0.34);
+  border-radius: 28px;
+  animation: ring-wobble 4s ease-in-out infinite;
+}
+
+.pause-symbol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 64px;
+  height: 64px;
+  border-radius: 22px;
+  background: linear-gradient(150deg, var(--orange-light), var(--orange));
+  box-shadow: inset 0 -6px 0 rgba(160, 40, 0, 0.28), inset 0 3px 0 rgba(255, 255, 255, 0.3), 0 12px 22px rgba(255, 83, 16, 0.22);
+}
+
+.pause-symbol i {
+  width: 6px;
+  height: 23px;
+  border-radius: 3px;
+  background: var(--white);
+  box-shadow: 0 2px 0 rgba(160, 40, 0, 0.18);
+}
+
+@keyframes ring-wobble {
+  0%,
+  100% {
+    transform: rotate(-3deg) scale(0.95);
+  }
+  50% {
+    transform: translateY(-5px) rotate(3deg) scale(1.03);
+  }
+}
+
+.blocked-copy .eyebrow {
+  color: var(--orange);
+}
+
+h1,
+h2 {
+  font-family: var(--font-round);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+h1 {
+  max-width: 420px;
+  margin: 11px auto 0;
+  font-size: clamp(34px, 7vw, 50px);
+  line-height: 0.98;
+}
+
+.blocked-message {
+  max-width: 350px;
+  margin: 18px auto 0;
+  color: var(--gray);
+  font-size: 15px;
+  line-height: 1.5;
+  text-wrap: balance;
+}
+
+.focus-reminder {
+  padding: 17px;
+  margin-top: 24px;
+  border: 2px solid var(--tan-soft);
+  border-radius: var(--radius-lg);
+  background: var(--warm);
+  box-shadow: 0 6px 0 rgba(178, 167, 154, 0.13);
+  text-align: left;
+}
+
+.focus-reminder-heading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.focus-reminder-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 15px;
+  background: linear-gradient(150deg, var(--green-light), var(--green));
+  color: var(--white);
+  box-shadow: inset 0 -5px 0 color-mix(in srgb, var(--green-dark) 52%, transparent), inset 0 3px 0 rgba(255, 255, 255, 0.3), 0 7px 13px color-mix(in srgb, var(--green) 20%, transparent);
+}
+
+.focus-reminder-icon svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+.focus-reminder h2 {
+  margin-top: 3px;
+  font-size: 17px;
+  line-height: 1.15;
+}
+
+.focus-goal-list {
+  padding: 0;
+  margin: 13px 0 0;
+  list-style: none;
+}
+
+.focus-goal-list[hidden],
+.focus-empty[hidden] {
+  display: none;
+}
+
+.focus-goal-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1.5px solid var(--tan-soft);
+  color: var(--ink);
+  font-family: var(--font-round);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.focus-goal-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
+  background: linear-gradient(150deg, var(--green-light), var(--green));
+  color: var(--white);
+  box-shadow: inset 0 -3px 0 rgba(20, 110, 60, 0.22), 0 3px 0 rgba(20, 110, 60, 0.12);
+}
+
+.focus-goal-marker svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.focus-empty {
+  margin-top: 13px;
+  color: var(--gray);
+  font-size: 13px;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.blocked-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.blocked-default-content[hidden],
+.break-challenge[hidden] {
+  display: none;
+}
+
+.break-challenge {
+  display: flex;
+  min-height: 475px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.break-challenge.is-entering {
+  animation: challenge-enter 420ms var(--spring) both;
+}
+
+@keyframes challenge-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.challenge-token {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  gap: 6px;
+  padding-bottom: 21px;
+  border: 2px dashed color-mix(in srgb, var(--gold) 52%, transparent);
+  border-radius: 27px;
+  background: color-mix(in srgb, var(--gold-light) 44%, var(--white));
+}
+
+.challenge-token span {
+  width: 9px;
+  border-radius: 5px;
+  background: linear-gradient(180deg, var(--gold-light), var(--gold));
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--gold-dark) 22%, transparent);
+}
+
+.challenge-token span:nth-child(1) {
+  height: 18px;
+}
+
+.challenge-token span:nth-child(2) {
+  height: 32px;
+}
+
+.challenge-token span:nth-child(3) {
+  height: 24px;
+}
+
+.challenge-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.challenge-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.challenge-dots span {
+  width: 18px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--stone);
+  transition: width var(--duration) var(--spring), background var(--duration) ease;
+}
+
+.challenge-dots span.is-current {
+  width: 28px;
+  background: var(--orange);
+}
+
+.challenge-dots span.is-complete {
+  background: var(--green);
+}
+
+.break-challenge h2 {
+  max-width: 390px;
+  margin-top: 18px;
+  font-size: clamp(28px, 5vw, 38px);
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.break-challenge-message {
+  max-width: 375px;
+  min-height: 66px;
+  margin-top: 16px;
+  color: var(--gray);
+  font-size: 14px;
+  line-height: 1.55;
+  text-wrap: balance;
+}
+
+.challenge-actions {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.primary-button,
+.secondary-button {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  font-family: var(--font-round);
+  font-size: 13px;
+  font-weight: 700;
+  transition: transform var(--duration) var(--spring), box-shadow var(--duration) var(--spring);
+}
+
+.primary-button {
+  border: 2px solid var(--blue);
+  background: var(--blue);
+  color: var(--white);
+  box-shadow: 0 5px 0 var(--blue-dark), 0 12px 22px rgba(26, 136, 248, 0.2);
+}
+
+.secondary-button {
+  border: 2px solid var(--tan);
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: 0 5px 0 var(--tan-soft);
+}
+
+.primary-button:hover,
+.secondary-button:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.01);
+}
+
+.primary-button:hover {
+  box-shadow: 0 7px 0 var(--blue-dark), 0 16px 28px rgba(26, 136, 248, 0.24);
+}
+
+.secondary-button:hover:not(:disabled) {
+  box-shadow: 0 7px 0 var(--tan-soft);
+}
+
+.primary-button:active,
+.secondary-button:active:not(:disabled) {
+  transform: translateY(2px) scale(0.98);
+}
+
+.secondary-button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.blocked-notice {
+  min-height: 18px;
+  margin-top: 14px;
+  color: var(--green-dark);
+  font-family: var(--font-round);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.footer-mark {
+  position: fixed;
+  bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gray);
+  font-family: var(--font-round);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.footer-mark span {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 4px;
+  background: var(--gold);
+  box-shadow: inset 0 -2px 0 rgba(180, 110, 0, 0.22);
+}
+
+@media (max-width: 520px) {
+  .blocked-card {
+    padding: 30px 22px;
+    border-radius: 26px;
+  }
+
+  .blocked-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .challenge-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-mark {
+    position: static;
+    margin-top: 26px;
+  }
+}

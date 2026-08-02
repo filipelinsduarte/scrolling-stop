@@ -1,0 +1,118 @@
+:root {
+  color-scheme: light;
+  --font-round: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Avenir Next", Avenir, sans-serif;
+  --font-sans: "Avenir Next", Avenir, ui-rounded, "Segoe UI", sans-serif;
+  --white: #ffffff;
+  --warm: #fbfaf9;
+  --ink: #343433;
+  --gray: #747484;
+  --gray-soft: rgba(116, 116, 132, 0.72);
+  --blue: #1a88f8;
+  --blue-light: #4dafff;
+  --blue-dark: #0f6ac9;
+  --blue-soft: #e7f3ff;
+  --orange: #ff5310;
+  --orange-light: #ff855a;
+  --orange-dark: #bd3500;
+  --orange-soft: #fff0e9;
+  --gold: #f5b442;
+  --gold-light: #ffe1a1;
+  --gold-dark: #c77c00;
+  --green: #44c67f;
+  --green-light: #7fe0ac;
+  --green-dark: #228b52;
+  --green-soft: #ecfbf3;
+  --purple: #9553f9;
+  --purple-light: #c191ff;
+  --purple-dark: #6f30c4;
+  --purple-soft: #f4edff;
+  --stone: #f2ebe0;
+  --tan: #b2a79a;
+  --tan-soft: rgba(178, 167, 154, 0.34);
+  --line: var(--tan-soft);
+  --line-strong: rgba(178, 167, 154, 0.58);
+  --canvas: var(--warm);
+  --surface: var(--white);
+  --surface-muted: var(--stone);
+  --ink-soft: var(--gray);
+  --ink-faint: var(--gray-soft);
+  --accent: var(--blue);
+  --accent-dark: var(--blue-dark);
+  --accent-soft: var(--blue-soft);
+  --linkedin: #0a66c2;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-card: 0 8px 0 rgba(178, 167, 154, 0.18), 0 16px 28px rgba(52, 52, 51, 0.08);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --settle: cubic-bezier(0.22, 1.2, 0.36, 1);
+  --duration: 360ms;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body,
+h1,
+h2,
+p,
+ul {
+  margin: 0;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.eyebrow {
+  color: var(--gray);
+  font-family: var(--font-round);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
