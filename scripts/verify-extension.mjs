@@ -154,6 +154,49 @@ try {
     "The blocked-site list did not use Chrome's native favicon source.",
   );
 
+  await popupPage.locator("#enabled-toggle").click();
+  await popupPage.waitForFunction(() => {
+    return !document.getElementById("settings-challenge")?.hidden;
+  });
+  assert(
+    await popupPage.locator("#enabled-toggle").isChecked(),
+    "The blocking toggle changed before the confirmation flow completed.",
+  );
+  await popupPage.locator("#settings-challenge-cancel").click();
+  await popupPage.waitForFunction(() => document.getElementById("settings-challenge")?.hidden);
+
+  await popupPage.locator("#enabled-toggle").click();
+  await popupPage.locator("#settings-hold-button").click();
+  await popupPage.waitForTimeout(650);
+  assert(
+    await popupPage.locator("#settings-mini-form").isHidden(),
+    "A single click on the settings confirmation advanced the challenge.",
+  );
+  await holdButton(popupPage, "#settings-hold-button", 5_150);
+  await holdButton(popupPage, "#settings-hold-button", 5_150);
+  await popupPage.waitForFunction(() => !document.getElementById("settings-mini-form")?.hidden);
+  await popupPage.locator("#settings-mini-answer").fill("30");
+  await popupPage.locator("#settings-mini-form").press("Enter");
+  assert(
+    await popupPage.locator("#settings-mini-feedback").textContent() !== "",
+    "The settings challenge accepted an incorrect answer without feedback.",
+  );
+  await popupPage.locator("#settings-mini-answer").fill("31");
+  await popupPage.locator("#settings-mini-form").press("Enter");
+  await waitForText(popupPage, "#status-title", "Blocking is off");
+  const settingsChallengeAudit = await auditLayout(popupPage, [
+    ".settings-challenge-card h2",
+    ".settings-mini-form",
+    ".settings-mini-form input",
+  ]);
+  assert(
+    settingsChallengeAudit.horizontalOverflow <= 0,
+    "The settings challenge has horizontal overflow.",
+  );
+  await popupPage.evaluate(() => chrome.runtime.sendMessage({ type: "setEnabled", enabled: true }));
+  await popupPage.reload();
+  await waitForText(popupPage, "#status-title", "Blocking is active");
+
   await popupPage.locator("#focus-edit-button").click();
   await popupPage.waitForFunction(() => {
     return document.body.classList.contains("is-focus-view")

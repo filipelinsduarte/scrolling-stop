@@ -122,6 +122,33 @@
         <p id="notice" class="notice" aria-live="polite"></p>
       </main>
 
+      <section id="settings-challenge" class="settings-challenge" aria-hidden="true" inert aria-labelledby="settings-challenge-title">
+        <div class="settings-challenge-card" role="dialog" aria-modal="true">
+          <button id="settings-challenge-cancel" class="challenge-close" type="button" aria-label="Cancel blocking change">×</button>
+          <p class="eyebrow">Intentional switch</p>
+          <div class="challenge-dots" aria-hidden="true">
+            <span data-settings-dot="0"></span>
+            <span data-settings-dot="1"></span>
+            <span data-settings-dot="2"></span>
+          </div>
+          <p id="settings-challenge-step" class="challenge-step-label">Pause check 1 of 2</p>
+          <h2 id="settings-challenge-title">Pause before changing the guardrail.</h2>
+          <p id="settings-challenge-message">You chose to protect your attention.</p>
+          <button id="settings-hold-button" class="settings-hold-button" type="button">
+            <span class="settings-hold-fill" aria-hidden="true"></span>
+            <span id="settings-hold-label">Hold for 5 seconds to continue</span>
+          </button>
+          <form id="settings-mini-form" class="settings-mini-form" hidden novalidate>
+            <p id="settings-mini-prompt"></p>
+            <label for="settings-mini-answer">Your answer</label>
+            <input id="settings-mini-answer" type="text" inputmode="numeric" autocomplete="off">
+            <button type="submit">Confirm change</button>
+            <p id="settings-mini-feedback" aria-live="polite"></p>
+          </form>
+          <button id="settings-challenge-cancel-secondary" class="text-button" type="button">Keep blocking protected</button>
+        </div>
+      </section>
+
       <section id="focus-view" class="popup-view focus-view" aria-hidden="true" aria-labelledby="focus-page-title" inert>
         <header class="focus-page-header">
           <button id="focus-back-button" class="back-button" type="button" aria-label="Back to Scroll Stop">

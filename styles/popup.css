@@ -203,6 +203,183 @@ h2 {
   outline-offset: 3px;
 }
 
+.settings-challenge {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(44, 43, 41, 0.42);
+}
+
+.settings-challenge[hidden] {
+  display: none;
+}
+
+.settings-challenge-card {
+  position: relative;
+  width: min(100%, 350px);
+  padding: 24px 20px 18px;
+  border: 2px solid var(--tan-soft);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  box-shadow: 0 10px 0 rgba(52, 52, 51, 0.16);
+}
+
+.challenge-close {
+  position: absolute;
+  top: 9px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  color: var(--ink);
+  background: var(--cream);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.challenge-dots {
+  display: flex;
+  gap: 6px;
+  margin: 12px 0 8px;
+}
+
+.challenge-dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--tan-soft);
+}
+
+.challenge-dots span.is-current {
+  background: var(--orange);
+}
+
+.challenge-dots span.is-complete {
+  background: var(--green);
+}
+
+.challenge-step-label {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settings-challenge-card h2 {
+  max-width: 270px;
+  margin: 0;
+  color: var(--ink);
+  font-size: 20px;
+}
+
+.settings-challenge-card > p:not(.eyebrow):not(.challenge-step-label) {
+  margin: 8px 0 16px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.settings-hold-button {
+  position: relative;
+  width: 100%;
+  min-height: 48px;
+  overflow: hidden;
+  border: 2px solid var(--orange-dark);
+  border-radius: var(--radius-md);
+  color: var(--white);
+  background: var(--orange);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.settings-hold-button:focus-visible,
+.challenge-close:focus-visible,
+.settings-mini-form input:focus-visible,
+.settings-mini-form button:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.settings-hold-button.is-holding {
+  background: var(--orange-dark);
+}
+
+.settings-hold-fill {
+  position: absolute;
+  inset: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: rgba(255, 255, 255, 0.24);
+  pointer-events: none;
+}
+
+.settings-hold-button > span:last-child {
+  position: relative;
+  z-index: 1;
+}
+
+.settings-mini-form {
+  display: grid;
+  gap: 9px;
+}
+
+.settings-mini-form[hidden] {
+  display: none;
+}
+
+.settings-mini-form p {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.settings-mini-form label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.settings-mini-form input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 2px solid var(--tan-soft);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  background: var(--cream);
+  font: inherit;
+}
+
+.settings-mini-form button {
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-md);
+  color: var(--white);
+  background: var(--green);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.settings-mini-form #settings-mini-feedback {
+  min-height: 18px;
+  color: var(--orange-dark);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.settings-challenge-card > .text-button {
+  display: block;
+  margin: 13px auto 0;
+}
+
 .status-panel {
   min-height: 68px;
   gap: 12px;

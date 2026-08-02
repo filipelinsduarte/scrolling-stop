@@ -1,16 +1,28 @@
 import { normalizeDomain } from "./src/blocker.js";
 import { calculatePercentage, formatSavedTime } from "./src/analytics.js";
+import {
+  advanceSettingsChallenge,
+  createSettingsMiniChallenge,
+  isSettingsMiniChallengeAnswer,
+  SETTINGS_CONFIRMATION_STEPS,
+  SETTINGS_HOLD_DURATION_MS,
+} from "./src/settings-challenge.js";
 
 const state = {
   currentDomain: null,
   currentTabId: null,
   draftGoals: [],
   settings: null,
+  settingsChallenge: null,
 };
 
 const EMPTY_EDITOR_GOALS = ["", "", ""];
 
 const elements = {};
+let settingsHoldIntervalId = null;
+let settingsHoldTimeoutId = null;
+let settingsHoldStartedAt = 0;
+let settingsHoldInProgress = false;
 
 function requireElement(id) {
   const element = document.getElementById(id);
@@ -51,6 +63,22 @@ function cacheElements() {
   elements.analyticsBackButton = requireElement("analytics-back-button");
   elements.analyticsReturnRing = requireElement("analytics-return-ring");
   elements.analyticsReturnRate = requireElement("analytics-return-rate");
+  elements.settingsChallenge = requireElement("settings-challenge");
+  elements.settingsChallengeTitle = requireElement("settings-challenge-title");
+  elements.settingsChallengeMessage = requireElement("settings-challenge-message");
+  elements.settingsChallengeStep = requireElement("settings-challenge-step");
+  elements.settingsHoldButton = requireElement("settings-hold-button");
+  elements.settingsHoldFill = elements.settingsHoldButton.querySelector(".settings-hold-fill");
+  if (!elements.settingsHoldFill) {
+    throw new Error("Required settings hold fill is missing.");
+  }
+  elements.settingsHoldLabel = requireElement("settings-hold-label");
+  elements.settingsMiniForm = requireElement("settings-mini-form");
+  elements.settingsMiniPrompt = requireElement("settings-mini-prompt");
+  elements.settingsMiniAnswer = requireElement("settings-mini-answer");
+  elements.settingsMiniFeedback = requireElement("settings-mini-feedback");
+  elements.settingsChallengeCancel = requireElement("settings-challenge-cancel");
+  elements.settingsChallengeCancelSecondary = requireElement("settings-challenge-cancel-secondary");
 }
 
 async function sendMessage(message) {
@@ -348,20 +376,157 @@ function showNotice(message, type = "success", target = elements.notice) {
   }, 2600);
 }
 
-async function handleEnabledChange() {
+function clearSettingsHoldTimers() {
+  if (settingsHoldIntervalId !== null) {
+    window.clearInterval(settingsHoldIntervalId);
+    settingsHoldIntervalId = null;
+  }
+  if (settingsHoldTimeoutId !== null) {
+    window.clearTimeout(settingsHoldTimeoutId);
+    settingsHoldTimeoutId = null;
+  }
+}
+
+function resetSettingsHold() {
+  clearSettingsHoldTimers();
+  settingsHoldInProgress = false;
+  elements.settingsHoldButton.classList.remove("is-holding");
+  elements.settingsHoldFill.style.transform = "scaleX(0)";
+  const step = SETTINGS_CONFIRMATION_STEPS[state.settingsChallenge?.stepIndex || 0];
+  elements.settingsHoldLabel.textContent = step?.holdLabel || "Hold for 5 seconds";
+}
+
+function closeSettingsChallenge() {
+  resetSettingsHold();
+  state.settingsChallenge = null;
+  elements.settingsChallenge.setAttribute("aria-hidden", "true");
+  elements.settingsChallenge.inert = true;
+  elements.settingsChallenge.hidden = true;
+  elements.enabledToggle.disabled = false;
+  elements.enabledToggle.checked = state.settings?.enabled ?? true;
+}
+
+function renderSettingsChallenge() {
+  const challenge = state.settingsChallenge;
+  if (!challenge) {
+    return;
+  }
+
+  const isMiniChallenge = challenge.stepIndex >= SETTINGS_CONFIRMATION_STEPS.length;
+  elements.settingsChallenge.hidden = false;
+  elements.settingsChallenge.setAttribute("aria-hidden", "false");
+  elements.settingsChallenge.inert = false;
+  elements.settingsMiniForm.hidden = !isMiniChallenge;
+  elements.settingsHoldButton.hidden = isMiniChallenge;
+  elements.settingsChallengeCancelSecondary.hidden = isMiniChallenge;
+
+  for (const dot of elements.settingsChallenge.querySelectorAll("[data-settings-dot]")) {
+    const dotIndex = Number(dot.dataset.settingsDot);
+    dot.classList.toggle("is-current", dotIndex === challenge.stepIndex);
+    dot.classList.toggle("is-complete", dotIndex < challenge.stepIndex);
+  }
+
+  if (isMiniChallenge) {
+    const miniChallenge = createSettingsMiniChallenge();
+    elements.settingsChallengeStep.textContent = "Final check";
+    elements.settingsChallengeTitle.textContent = "One last intentional choice.";
+    elements.settingsChallengeMessage.textContent = challenge.desiredEnabled
+      ? "Solve this quick check before restoring the guardrail."
+      : "Solve this quick check before lowering the guardrail.";
+    elements.settingsMiniPrompt.textContent = miniChallenge.prompt;
+    elements.settingsMiniAnswer.value = "";
+    elements.settingsMiniFeedback.textContent = "";
+    window.setTimeout(() => elements.settingsMiniAnswer.focus(), 0);
+    return;
+  }
+
+  const step = SETTINGS_CONFIRMATION_STEPS[challenge.stepIndex];
+  elements.settingsChallengeStep.textContent = `Pause check ${challenge.stepIndex + 1} of ${SETTINGS_CONFIRMATION_STEPS.length}`;
+  elements.settingsChallengeTitle.textContent = step.title;
+  elements.settingsChallengeMessage.textContent = step.message;
+  resetSettingsHold();
+  elements.settingsHoldButton.focus();
+}
+
+function beginSettingsChallenge() {
+  const desiredEnabled = elements.enabledToggle.checked;
+  elements.enabledToggle.checked = state.settings?.enabled ?? true;
   elements.enabledToggle.disabled = true;
+  state.settingsChallenge = { desiredEnabled, stepIndex: 0 };
+  renderSettingsChallenge();
+}
+
+function updateSettingsHoldProgress() {
+  const elapsedMs = Math.max(0, performance.now() - settingsHoldStartedAt);
+  const progress = Math.min(1, elapsedMs / SETTINGS_HOLD_DURATION_MS);
+  const remainingSeconds = Math.max(
+    1,
+    Math.ceil((SETTINGS_HOLD_DURATION_MS - elapsedMs) / 1000),
+  );
+  elements.settingsHoldFill.style.transform = `scaleX(${progress})`;
+  elements.settingsHoldLabel.textContent = `Keep holding · ${remainingSeconds}s`;
+}
+
+async function completeSettingsHold() {
+  if (!settingsHoldInProgress) {
+    return;
+  }
+  clearSettingsHoldTimers();
+  settingsHoldInProgress = false;
+  elements.settingsHoldFill.style.transform = "scaleX(1)";
+  const nextStep = advanceSettingsChallenge(state.settingsChallenge.stepIndex);
+  state.settingsChallenge.stepIndex = nextStep.stepIndex;
+  renderSettingsChallenge();
+}
+
+function startSettingsHold(event) {
+  if (settingsHoldInProgress || elements.settingsHoldButton.disabled) {
+    return;
+  }
+  if (event instanceof PointerEvent && event.button !== 0) {
+    return;
+  }
+  event.preventDefault();
+  settingsHoldInProgress = true;
+  settingsHoldStartedAt = performance.now();
+  elements.settingsHoldButton.classList.add("is-holding");
+  updateSettingsHoldProgress();
+  settingsHoldIntervalId = window.setInterval(updateSettingsHoldProgress, 50);
+  settingsHoldTimeoutId = window.setTimeout(completeSettingsHold, SETTINGS_HOLD_DURATION_MS);
+}
+
+function cancelSettingsHold(event) {
+  if (!settingsHoldInProgress) {
+    return;
+  }
+  event?.preventDefault();
+  resetSettingsHold();
+}
+
+async function handleSettingsMiniSubmit(event) {
+  event.preventDefault();
+  const challenge = createSettingsMiniChallenge();
+  if (!isSettingsMiniChallengeAnswer(challenge, elements.settingsMiniAnswer.value)) {
+    elements.settingsMiniFeedback.textContent = "Not quite. Take a moment and try again.";
+    elements.settingsMiniAnswer.select();
+    return;
+  }
+
   try {
     state.settings = await sendMessage({
       type: "setEnabled",
-      enabled: elements.enabledToggle.checked,
+      enabled: state.settingsChallenge.desiredEnabled,
     });
+    closeSettingsChallenge();
     render();
+    showNotice(state.settings.enabled ? "Blocking is protected again." : "Blocking is paused intentionally.");
   } catch (error) {
-    showNotice(error.message, "error");
-    elements.enabledToggle.checked = state.settings?.enabled ?? true;
-  } finally {
-    elements.enabledToggle.disabled = false;
+    elements.settingsMiniFeedback.textContent = error.message;
   }
+}
+
+function handleEnabledChange() {
+  beginSettingsChallenge();
 }
 
 async function handlePauseClick() {
@@ -592,6 +757,29 @@ async function handleSiteListClick(event) {
 
 function bindEvents() {
   elements.enabledToggle.addEventListener("change", handleEnabledChange);
+  elements.settingsHoldButton.addEventListener("pointerdown", startSettingsHold);
+  elements.settingsHoldButton.addEventListener("pointerup", cancelSettingsHold);
+  elements.settingsHoldButton.addEventListener("pointercancel", cancelSettingsHold);
+  elements.settingsHoldButton.addEventListener("pointerleave", cancelSettingsHold);
+  elements.settingsHoldButton.addEventListener("keydown", (event) => {
+    if ((event.key === " " || event.key === "Enter") && !event.repeat) {
+      startSettingsHold(event);
+    }
+  });
+  elements.settingsHoldButton.addEventListener("keyup", (event) => {
+    if (event.key === " " || event.key === "Enter") {
+      cancelSettingsHold(event);
+    }
+  });
+  window.addEventListener("blur", cancelSettingsHold);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      cancelSettingsHold();
+    }
+  });
+  elements.settingsChallengeCancel.addEventListener("click", closeSettingsChallenge);
+  elements.settingsChallengeCancelSecondary.addEventListener("click", closeSettingsChallenge);
+  elements.settingsMiniForm.addEventListener("submit", handleSettingsMiniSubmit);
   elements.pauseButton.addEventListener("click", handlePauseClick);
   elements.blockCurrentButton.addEventListener("click", handleBlockCurrentSite);
   elements.focusEditButton.addEventListener("click", openFocusView);
