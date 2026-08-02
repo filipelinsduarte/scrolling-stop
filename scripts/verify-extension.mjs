@@ -590,6 +590,22 @@ try {
     "3 attempts · 5m saved",
   );
 
+  const xBareDomainPage = await context.newPage();
+  collectErrors(xBareDomainPage, "X bare-domain block screen");
+  await xBareDomainPage.goto("https://x.com", {
+    waitUntil: "domcontentloaded",
+    timeout: 15_000,
+  });
+  const xBareDomainUrl = new URL(xBareDomainPage.url());
+  assert(
+    xBareDomainUrl.protocol === "chrome-extension:"
+      && xBareDomainUrl.host === extensionId
+      && xBareDomainUrl.pathname === "/blocked.html"
+      && xBareDomainUrl.searchParams.get("domain") === "x.com",
+    `The bare x.com domain was not blocked. Chrome ended at ${xBareDomainPage.url()}`,
+  );
+  await xBareDomainPage.close();
+
   const xBlockedPage = await context.newPage();
   collectErrors(xBlockedPage, "X blocked screen");
   await xBlockedPage.goto("https://x.com/home", {

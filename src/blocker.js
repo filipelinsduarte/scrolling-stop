@@ -157,7 +157,10 @@ export function buildBlockingRules(settings, now = Date.now()) {
       },
     },
     condition: {
-      urlFilter: `||${domain}/`,
+      // Match the bare hostname as well as paths such as /home. A filter
+      // ending in a slash can miss an initial navigation serialized as
+      // https://example.com without an explicit path.
+      urlFilter: `||${domain}`,
       resourceTypes: ["main_frame"],
     },
   }));

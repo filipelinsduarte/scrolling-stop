@@ -129,7 +129,7 @@ describe("buildBlockingRules", () => {
           redirect: { extensionPath: "/blocked.html?domain=linkedin.com" },
         },
         condition: {
-          urlFilter: "||linkedin.com/",
+          urlFilter: "||linkedin.com",
           resourceTypes: ["main_frame"],
         },
       },
@@ -141,7 +141,7 @@ describe("buildBlockingRules", () => {
           redirect: { extensionPath: "/blocked.html?domain=x.com" },
         },
         condition: {
-          urlFilter: "||x.com/",
+          urlFilter: "||x.com",
           resourceTypes: ["main_frame"],
         },
       },
@@ -177,8 +177,8 @@ describe("buildBlockingRules", () => {
     });
 
     expect(rules.map((rule) => rule.condition.urlFilter)).toEqual([
-      "||x.com/",
-      "||reddit.com/",
+      "||x.com",
+      "||reddit.com",
     ]);
     expect(rules.map((rule) => rule.action.redirect.extensionPath)).toEqual([
       "/blocked.html?domain=x.com",
