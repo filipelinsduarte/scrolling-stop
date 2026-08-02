@@ -26,6 +26,11 @@ describe("normalizeDomain", () => {
     expect(normalizeDomain("x")).toBe("x.com");
   });
 
+  it("treats Twitter and X as the same blocked service", () => {
+    expect(normalizeDomain("twitter.com")).toBe("x.com");
+    expect(normalizeDomain("www.twitter.com")).toBe("x.com");
+  });
+
   it("rejects unsupported browser and local URLs", () => {
     expect(normalizeDomain("chrome://extensions")).toBeNull();
     expect(normalizeDomain("localhost:3000")).toBeNull();
@@ -72,7 +77,7 @@ describe("normalizeFocusGoals", () => {
 describe("getEffectiveSettings", () => {
   const defaults = {
     enabled: true,
-    blockedDomains: ["linkedin.com", "x.com", "twitter.com"],
+    blockedDomains: ["linkedin.com", "x.com"],
     focusGoals: [],
     pausedUntil: 0,
     pausedDomain: null,
@@ -184,6 +189,21 @@ describe("buildBlockingRules", () => {
       "/blocked.html?domain=x.com",
       "/blocked.html?domain=reddit.com",
     ]);
+  });
+
+  it("builds the X rule when the user entered twitter.com", () => {
+    const rules = buildBlockingRules({
+      enabled: true,
+      blockedDomains: ["twitter.com"],
+      pausedUntil: 0,
+      pausedDomain: null,
+    });
+
+    expect(rules).toHaveLength(1);
+    expect(rules[0].condition.urlFilter).toBe("||x.com");
+    expect(rules[0].action.redirect.extensionPath).toBe(
+      "/blocked.html?domain=x.com",
+    );
   });
 });
 

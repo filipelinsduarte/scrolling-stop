@@ -2,7 +2,7 @@ import { DEFAULT_ANALYTICS, normalizeAnalytics } from "./analytics.js";
 
 export const DEFAULT_SETTINGS = Object.freeze({
   enabled: true,
-  blockedDomains: Object.freeze(["linkedin.com", "x.com", "twitter.com"]),
+  blockedDomains: Object.freeze(["linkedin.com", "x.com"]),
   focusGoals: Object.freeze([]),
   pausedUntil: 0,
   pausedDomain: null,
@@ -13,6 +13,8 @@ const SUPPORTED_PROTOCOLS = new Set(["http:", "https:"]);
 const MAX_GOAL_CHARACTERS = 120;
 const DOMAIN_ALIASES = Object.freeze({
   x: "x.com",
+  "x.com": "x.com",
+  "twitter.com": "x.com",
 });
 
 export function normalizeDomain(input) {
@@ -49,7 +51,7 @@ export function normalizeDomain(input) {
     return null;
   }
 
-  return hostname;
+  return DOMAIN_ALIASES[hostname] || hostname;
 }
 
 export function normalizeDomainList(domains) {
