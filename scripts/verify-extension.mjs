@@ -126,6 +126,18 @@ try {
     defaultSiteNames.includes("X (legacy)"),
     "The legacy X domain was not present in the default blocked list.",
   );
+  await popupPage.waitForFunction(() => {
+    const favicons = [...document.querySelectorAll("#site-list .site-favicon")];
+    return favicons.length === 3
+      && favicons.every((favicon) => favicon.complete && favicon.naturalWidth > 0);
+  });
+  const defaultFaviconUrls = await popupPage
+    .locator("#site-list .site-favicon")
+    .evaluateAll((favicons) => favicons.map((favicon) => favicon.src));
+  assert(
+    defaultFaviconUrls.every((faviconUrl) => faviconUrl.includes("/_favicon/")),
+    "The blocked-site list did not use Chrome's native favicon source.",
+  );
 
   await popupPage.locator("#focus-edit-button").click();
   await popupPage.waitForFunction(() => {
@@ -213,6 +225,15 @@ try {
     await popupPage.locator("text=reddit.com").count() >= 1,
     "A manually added domain was not rendered.",
   );
+  await popupPage.waitForFunction(() => {
+    const redditFavicon = [...document.querySelectorAll("#site-list .site-favicon")]
+      .find((favicon) => favicon.src.includes("reddit.com"));
+    return Boolean(
+      redditFavicon
+      && redditFavicon.complete
+      && redditFavicon.naturalWidth > 0,
+    );
+  });
 
   await popupPage.locator(".switch-track").click();
   await waitForText(popupPage, "#status-title", "Blocking is off");
@@ -224,6 +245,7 @@ try {
   await waitForText(popupPage, "#status-detail", "2 min left");
   await popupPage.locator("#pause-button").click();
   await waitForText(popupPage, "#status-title", "Blocking is active");
+  await popupPage.waitForTimeout(520);
 
   const popupAudit = await auditLayout(popupPage, [
     ".main-view h1",
@@ -541,12 +563,50 @@ try {
     "Reddit can wait. Will opening it help the focus you chose, or pull you further away from it?",
   );
 
+  await popupPage.evaluate(async () => {
+    const response = await chrome.runtime.sendMessage({
+      type: "setEnabled",
+      enabled: false,
+    });
+    if (!response?.ok) {
+      throw new Error(response?.error || "Could not disable blocking for the open-tab test.");
+    }
+  });
+  const alreadyOpenXPage = await context.newPage();
+  await alreadyOpenXPage.goto("https://x.com/home", {
+    waitUntil: "domcontentloaded",
+    timeout: 15_000,
+  });
+  assert(
+    new URL(alreadyOpenXPage.url()).hostname === "x.com",
+    `The open-tab regression setup did not reach X: ${alreadyOpenXPage.url()}`,
+  );
+  await popupPage.evaluate(async () => {
+    const response = await chrome.runtime.sendMessage({
+      type: "setEnabled",
+      enabled: true,
+    });
+    if (!response?.ok) {
+      throw new Error(response?.error || "Could not re-enable blocking for the open-tab test.");
+    }
+  });
+  await waitForText(alreadyOpenXPage, "#blocked-title", "You came here on autopilot.");
+  const alreadyOpenXUrl = new URL(alreadyOpenXPage.url());
+  assert(
+    alreadyOpenXUrl.protocol === "chrome-extension:"
+      && alreadyOpenXUrl.host === extensionId
+      && alreadyOpenXUrl.pathname === "/blocked.html"
+      && alreadyOpenXUrl.searchParams.get("domain") === "x.com",
+    `Re-enabling blocking did not redirect an already-open X tab: ${alreadyOpenXPage.url()}`,
+  );
+
   assert(browserErrors.length === 0, browserErrors.join("\n"));
 
   console.log(JSON.stringify({
     extensionId,
     checks: {
       defaultDomains: true,
+      nativeWebsiteFavicons: true,
       focusGoalSave: true,
       unlimitedFocusGoals: true,
       focusPageNavigation: true,
@@ -555,6 +615,7 @@ try {
       twoStepBreakChallenge: true,
       twoMinuteBreakLimit: true,
       siteScopedBreak: true,
+      alreadyOpenTabEnforcement: true,
       analyticsByDomain: true,
       estimatedTimeSaved: true,
       focusReturnTracking: true,

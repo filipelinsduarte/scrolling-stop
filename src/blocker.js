@@ -11,6 +11,9 @@ export const DEFAULT_SETTINGS = Object.freeze({
 
 const SUPPORTED_PROTOCOLS = new Set(["http:", "https:"]);
 const MAX_GOAL_CHARACTERS = 120;
+const DOMAIN_ALIASES = Object.freeze({
+  x: "x.com",
+});
 
 export function normalizeDomain(input) {
   if (typeof input !== "string") {
@@ -22,10 +25,14 @@ export function normalizeDomain(input) {
     return null;
   }
 
+  const aliasedCandidate = DOMAIN_ALIASES[candidate.toLowerCase()] || candidate;
+
   let parsedUrl;
   try {
-    const hasProtocol = /^[a-z][a-z\d+.-]*:\/\//i.test(candidate);
-    parsedUrl = new URL(hasProtocol ? candidate : `https://${candidate}`);
+    const hasProtocol = /^[a-z][a-z\d+.-]*:\/\//i.test(aliasedCandidate);
+    parsedUrl = new URL(
+      hasProtocol ? aliasedCandidate : `https://${aliasedCandidate}`,
+    );
   } catch {
     return null;
   }
@@ -138,17 +145,7 @@ export function getEffectiveSettings(rawSettings, defaults, now = Date.now()) {
 }
 
 export function buildBlockingRules(settings, now = Date.now()) {
-  const hasActivePause = settings.pausedUntil > now;
-  const pausedDomain = hasActivePause
-    ? normalizeDomain(settings.pausedDomain)
-    : null;
-  const hasGlobalPause = hasActivePause && !pausedDomain;
-  if (!settings.enabled || hasGlobalPause) {
-    return [];
-  }
-
-  const activeDomains = normalizeDomainList(settings.blockedDomains)
-    .filter((domain) => domain !== pausedDomain);
+  const activeDomains = getActiveBlockedDomains(settings, now);
 
   return activeDomains.map((domain, index) => ({
     id: index + 1,
@@ -164,4 +161,33 @@ export function buildBlockingRules(settings, now = Date.now()) {
       resourceTypes: ["main_frame"],
     },
   }));
+}
+
+export function getActiveBlockedDomains(settings, now = Date.now()) {
+  const hasActivePause = settings.pausedUntil > now;
+  const pausedDomain = hasActivePause
+    ? normalizeDomain(settings.pausedDomain)
+    : null;
+  const hasGlobalPause = hasActivePause && !pausedDomain;
+  if (!settings.enabled || hasGlobalPause) {
+    return [];
+  }
+
+  return normalizeDomainList(settings.blockedDomains)
+    .filter((domain) => domain !== pausedDomain);
+}
+
+export function getBlockedDomainForUrl(url, settings, now = Date.now()) {
+  const currentDomain = normalizeDomain(url);
+  if (!currentDomain) {
+    return null;
+  }
+
+  const matchingDomains = getActiveBlockedDomains(settings, now)
+    .filter((domain) => {
+      return currentDomain === domain || currentDomain.endsWith(`.${domain}`);
+    })
+    .sort((first, second) => second.length - first.length);
+
+  return matchingDomains[0] || null;
 }

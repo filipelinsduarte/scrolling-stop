@@ -1,6 +1,7 @@
 import {
   buildBlockingRules,
   DEFAULT_SETTINGS,
+  getBlockedDomainForUrl,
   getEffectiveSettings,
   normalizeDomain,
   normalizeDomainList,
@@ -71,8 +72,34 @@ async function syncBlockingRules() {
       : "";
   await chrome.action.setBadgeBackgroundColor({ color: "#C94F38" });
   await chrome.action.setBadgeText({ text: badgeText });
+  await redirectOpenBlockedTabs(settings);
 
   return settings;
+}
+
+async function redirectOpenBlockedTabs(settings) {
+  const tabs = await chrome.tabs.query({});
+
+  for (const tab of tabs) {
+    if (!Number.isInteger(tab.id)) {
+      continue;
+    }
+
+    const tabUrl = tab.pendingUrl || tab.url || "";
+    const blockedDomain = getBlockedDomainForUrl(tabUrl, settings);
+    if (!blockedDomain) {
+      continue;
+    }
+
+    const redirectUrl = chrome.runtime.getURL(
+      `/blocked.html?domain=${encodeURIComponent(blockedDomain)}`,
+    );
+    try {
+      await chrome.tabs.update(tab.id, { url: redirectUrl });
+    } catch (error) {
+      console.warn(`[Scroll Stop] Could not redirect tab ${tab.id}`, error);
+    }
+  }
 }
 
 function scheduleRuleSync() {

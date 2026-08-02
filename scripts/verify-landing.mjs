@@ -13,7 +13,7 @@ const downloadPath = path.join(
   projectDirectory,
   "docs",
   "downloads",
-  "scrolling-stop-extension-v1.5.1.zip",
+  "scrolling-stop-extension-v1.5.2.zip",
 );
 const artifactDirectory = path.join(projectDirectory, "artifacts");
 
@@ -48,10 +48,51 @@ async function auditViewport(page, viewport, screenshotName) {
   await page.waitForTimeout(250);
 
   const audit = await page.evaluate(() => {
+    function measureLastLineWords(element) {
+      if (!element) {
+        return 0;
+      }
+
+      const range = document.createRange();
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+      const lineTops = [];
+      const lineWordCounts = [];
+      let textNode = walker.nextNode();
+
+      while (textNode) {
+        const words = [...textNode.textContent.matchAll(/\S+/g)];
+        words.forEach((word) => {
+          range.setStart(textNode, word.index);
+          range.setEnd(textNode, word.index + word[0].length);
+          const top = Math.round(range.getBoundingClientRect().top);
+          const existingLineIndex = lineTops.findIndex((lineTop) => Math.abs(lineTop - top) <= 3);
+
+          if (existingLineIndex >= 0) {
+            lineWordCounts[existingLineIndex] += 1;
+            return;
+          }
+
+          lineTops.push(top);
+          lineWordCounts.push(1);
+        });
+        textNode = walker.nextNode();
+      }
+
+      return lineWordCounts.at(-1) ?? 0;
+    }
+
     const documentElement = document.documentElement;
+    const heroHeading = document.querySelector(".hero h1");
+    const heroHeadingStyle = heroHeading ? window.getComputedStyle(heroHeading) : null;
+    const heroHeadingCanvas = document.createElement("canvas");
+    const heroHeadingContext = heroHeadingCanvas.getContext("2d");
+    if (heroHeadingContext && heroHeadingStyle) {
+      heroHeadingContext.font = heroHeadingStyle.font;
+    }
     const navActions = document.querySelector(".nav-actions");
     const downloadButton = document.querySelector(".nav-download");
     const githubButton = document.querySelector(".nav-github");
+    const chromeMark = downloadButton?.querySelector(".chrome-mark");
     const images = [...document.images].map((image) => ({
       alt: image.alt,
       complete: image.complete,
@@ -63,6 +104,10 @@ async function auditViewport(page, viewport, screenshotName) {
       navActionsVisible: Boolean(navActions && navActions.getBoundingClientRect().height > 0),
       downloadVisible: Boolean(downloadButton && downloadButton.getBoundingClientRect().width > 0),
       githubVisible: Boolean(githubButton && githubButton.getBoundingClientRect().width > 0),
+      chromeMarkVisible: Boolean(chromeMark && chromeMark.getBoundingClientRect().width > 0),
+      heroHeadingLastLineWords: measureLastLineWords(heroHeading),
+      heroHeadingWidth: heroHeading?.getBoundingClientRect().width ?? 0,
+      heroFocusLineWidth: heroHeadingContext?.measureText("Return to focus.").width ?? 0,
       images,
     };
   });
@@ -74,6 +119,13 @@ async function auditViewport(page, viewport, screenshotName) {
   assert(audit.navActionsVisible, `${viewport.width}px navigation actions are hidden.`);
   assert(audit.downloadVisible, `${viewport.width}px download CTA is hidden.`);
   assert(audit.githubVisible, `${viewport.width}px GitHub CTA is hidden.`);
+  assert(audit.chromeMarkVisible, `${viewport.width}px Chrome mark is hidden.`);
+  assert(
+    audit.heroHeadingLastLineWords >= 2,
+    `${viewport.width}px hero heading ends with a ${audit.heroHeadingLastLineWords}-word orphan line. `
+      + `Available width: ${Math.round(audit.heroHeadingWidth)}px. Required width: `
+      + `${Math.round(audit.heroFocusLineWidth)}px.`,
+  );
   assert(
     audit.images.every((image) => image.complete && image.naturalWidth > 0),
     `One or more landing page images failed to load: ${JSON.stringify(audit.images)}`,
@@ -109,18 +161,30 @@ try {
   await page.locator("h1").waitFor({ state: "visible" });
 
   assert(
-    await page.locator("h1").textContent() === "Stop the scroll.Return to your focus.",
+    await page.locator("h1").textContent() === "Stop the scroll.Return to focus.",
     "The landing page hero heading is missing or changed unexpectedly.",
   );
   assert(
     await page.locator("a[download]").first().getAttribute("href")
-      === "downloads/scrolling-stop-extension-v1.5.1.zip",
+      === "downloads/scrolling-stop-extension-v1.5.2.zip",
     "The download CTA does not point to the packaged Chrome extension.",
   );
   assert(
     await page.locator(".nav-github").getAttribute("href")
       === "https://github.com/filipelinsduarte/scrolling-stop",
     "The top navigation GitHub CTA does not point to the renamed repository.",
+  );
+  assert(
+    (await page.locator(".nav-github").textContent()).trim() === "Open-source repo",
+    "The top navigation does not clearly identify the open-source repository.",
+  );
+  assert(
+    await page.locator(".nav-github").getAttribute("target") === "_blank",
+    "The top navigation GitHub CTA should preserve the landing page in its current tab.",
+  );
+  assert(
+    (await page.locator(".nav-github").getAttribute("rel"))?.includes("noopener"),
+    "The external GitHub CTA is missing noopener protection.",
   );
 
   const desktopAudit = await auditViewport(
@@ -146,6 +210,8 @@ try {
       heroContent: true,
       topNavigationDownloadCta: true,
       topNavigationGithubCta: true,
+      topNavigationOpenSourceLabel: true,
+      authenticChromeMark: true,
       downloadPackageExists: true,
       allImagesLoaded: true,
       consoleErrors: 0,

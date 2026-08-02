@@ -97,7 +97,7 @@ h3 {
 
 h1 {
   max-width: 760px;
-  font-size: clamp(46px, 6.4vw, 78px);
+  font-size: clamp(46px, 5.3vw, 70px);
 }
 
 h2 {
@@ -221,6 +221,14 @@ h3 {
   gap: 10px;
 }
 
+.nav-github {
+  box-shadow: 0 4px 0 #1d1d1c, 0 11px 20px rgba(52, 52, 51, 0.14);
+}
+
+.nav-github:hover {
+  box-shadow: 0 6px 0 #1d1d1c, 0 15px 24px rgba(52, 52, 51, 0.18);
+}
+
 .button {
   display: inline-flex;
   min-height: 48px;
@@ -258,6 +266,38 @@ h3 {
 .button svg path[d^="M12 2.8"] {
   fill: currentColor;
   stroke: none;
+}
+
+.button .chrome-mark {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  overflow: visible;
+}
+
+.button .chrome-mark path,
+.button .chrome-mark circle {
+  stroke: none;
+}
+
+.chrome-red {
+  fill: #ea4335;
+}
+
+.chrome-green {
+  fill: #34a853;
+}
+
+.chrome-yellow {
+  fill: #fbbc05;
+}
+
+.chrome-ring {
+  fill: var(--white);
+}
+
+.chrome-blue {
+  fill: #4285f4;
 }
 
 .button-small {
@@ -1206,6 +1246,18 @@ h3 {
   font-weight: 700;
 }
 
+.footer-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-links svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
 .footer-links a:hover {
   color: var(--ink);
 }
@@ -1362,7 +1414,7 @@ h3 {
   }
 
   h1 {
-    font-size: clamp(43px, 13vw, 62px);
+    font-size: clamp(40px, 11vw, 56px);
   }
 
   .hero-product {

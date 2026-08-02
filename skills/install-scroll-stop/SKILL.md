@@ -39,6 +39,7 @@ Run `npm run verify` when an isolated Chromium instance is available. Do not tre
 4. Give the exact absolute path to the folder containing `manifest.json`.
 5. Ask the user to pin Scroll Stop from the Extensions menu.
 6. Confirm that LinkedIn or X redirects to the local Scroll Stop reminder.
+7. Confirm that an already-open blocked tab is redirected after blocking is enabled again.
 
 Do not modify the user's Chrome profile files directly. Chrome's extension picker and security confirmation remain user-controlled steps.
 
@@ -55,6 +56,8 @@ Ask the user to click **Reload** on Scroll Stop in `chrome://extensions`. If Chr
 - Preserve unlimited Focus Plan objectives unless the user explicitly requests a cap.
 - Preserve the two reflection steps and 2-minute break unless the user explicitly requests different behavior.
 - Keep blocked-page breaks site-specific. A break for one domain must not unblock any other domain. Keep only the popup pause global.
+- Preserve immediate enforcement for already-open blocked tabs through `getBlockedDomainForUrl` and the service-worker tab sync.
+- Preserve the native Chrome `_favicon` URL for every blocked website. Do not add an external favicon service or network dependency.
 - Keep website-specific challenge copy derived from the `domain` query parameter. Test both LinkedIn and X after changing redirect or challenge logic.
 - Preserve local-only analytics and label estimated time as an estimate.
 - Reuse the existing design tokens and Toy Grade components.

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildBlockingRules,
+  getBlockedDomainForUrl,
   getEffectiveSettings,
   normalizeDomain,
   normalizeDomainList,
@@ -19,6 +20,10 @@ describe("normalizeDomain", () => {
     expect(normalizeDomain("news.ycombinator.com/item?id=1")).toBe(
       "news.ycombinator.com",
     );
+  });
+
+  it("accepts the X brand name as x.com", () => {
+    expect(normalizeDomain("x")).toBe("x.com");
   });
 
   it("rejects unsupported browser and local URLs", () => {
@@ -179,5 +184,48 @@ describe("buildBlockingRules", () => {
       "/blocked.html?domain=x.com",
       "/blocked.html?domain=reddit.com",
     ]);
+  });
+});
+
+describe("getBlockedDomainForUrl", () => {
+  const settings = {
+    enabled: true,
+    blockedDomains: ["linkedin.com", "x.com", "reddit.com"],
+    pausedUntil: 0,
+    pausedDomain: null,
+  };
+
+  it("identifies already-open X pages and subdomains", () => {
+    expect(getBlockedDomainForUrl("https://x.com/home", settings, 1_000)).toBe(
+      "x.com",
+    );
+    expect(
+      getBlockedDomainForUrl("https://mobile.x.com/explore", settings, 1_000),
+    ).toBe("x.com");
+    expect(
+      getBlockedDomainForUrl("https://example.com/redirect?next=x.com", settings, 1_000),
+    ).toBeNull();
+  });
+
+  it("respects global and site-specific pauses", () => {
+    expect(
+      getBlockedDomainForUrl("https://x.com/home", {
+        ...settings,
+        pausedUntil: 2_000,
+        pausedDomain: null,
+      }, 1_000),
+    ).toBeNull();
+
+    const linkedInPause = {
+      ...settings,
+      pausedUntil: 2_000,
+      pausedDomain: "linkedin.com",
+    };
+    expect(
+      getBlockedDomainForUrl("https://linkedin.com/feed", linkedInPause, 1_000),
+    ).toBeNull();
+    expect(
+      getBlockedDomainForUrl("https://x.com/home", linkedInPause, 1_000),
+    ).toBe("x.com");
   });
 });

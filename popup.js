@@ -99,24 +99,36 @@ function createSvg(pathData, className = "") {
   return svg;
 }
 
+function createFaviconUrl(domain) {
+  const faviconUrl = new URL(chrome.runtime.getURL("/_favicon/"));
+  faviconUrl.searchParams.set("pageUrl", `https://${domain}/`);
+  faviconUrl.searchParams.set("size", "32");
+  return faviconUrl.toString();
+}
+
 function createDomainIcon(domain) {
   const wrapper = document.createElement("span");
-  wrapper.className = "site-icon";
+  wrapper.className = "site-icon site-icon-favicon";
+  wrapper.setAttribute("aria-hidden", "true");
 
-  if (domain === "linkedin.com") {
-    wrapper.classList.add("site-icon-linkedin");
-    wrapper.append(createSvg("M6.94 8.5H3.56V19h3.38V8.5ZM5.25 3A1.96 1.96 0 1 0 5.25 6.92 1.96 1.96 0 0 0 5.25 3ZM19 13.13c0-3.16-1.69-4.63-3.94-4.63a3.4 3.4 0 0 0-3.08 1.7V8.5H8.6V19h3.38v-5.2c0-1.37.26-2.7 1.96-2.7 1.67 0 1.69 1.57 1.69 2.79V19H19v-5.87Z"));
-    return wrapper;
-  }
+  const fallback = createSvg(
+    "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0c2.2-2.47 3.33-5.47 3.4-9C15.33 8.47 14.2 5.47 12 3m0 18c-2.2-2.47-3.33-5.47-3.4-9C8.67 8.47 9.8 5.47 12 3M3.6 9h16.8M3.6 15h16.8",
+    "site-favicon-fallback",
+  );
+  const image = document.createElement("img");
+  image.className = "site-favicon";
+  image.alt = "";
+  image.width = 20;
+  image.height = 20;
+  image.src = createFaviconUrl(domain);
+  image.addEventListener("load", () => {
+    wrapper.classList.add("has-favicon");
+  });
+  image.addEventListener("error", () => {
+    image.hidden = true;
+  });
 
-  if (domain === "x.com" || domain === "twitter.com") {
-    wrapper.classList.add("site-icon-x");
-    wrapper.append(createSvg("M18.9 3H22l-6.77 7.74L23.2 21h-6.24l-4.89-6.39L6.48 21H3.36l7.26-8.3L2.98 3h6.4l4.42 5.84L18.9 3Zm-1.1 16.2h1.72L8.44 4.7H6.6l11.2 14.5Z"));
-    return wrapper;
-  }
-
-  wrapper.classList.add("site-icon-generic");
-  wrapper.append(createSvg("M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0c2.2-2.47 3.33-5.47 3.4-9C15.33 8.47 14.2 5.47 12 3m0 18c-2.2-2.47-3.33-5.47-3.4-9C8.67 8.47 9.8 5.47 12 3M3.6 9h16.8M3.6 15h16.8"));
+  wrapper.append(fallback, image);
   return wrapper;
 }
 
@@ -381,7 +393,6 @@ async function handleBlockCurrentSite() {
     showNotice(`${state.currentDomain} is now blocked.`);
 
     if (state.currentTabId !== null) {
-      await chrome.tabs.reload(state.currentTabId);
       window.close();
     }
   } catch (error) {

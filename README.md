@@ -11,12 +11,14 @@ LinkedIn, X, and the legacy Twitter domain are blocked by default. Add or remove
 ## What it does
 
 - Redirects blocked websites to a local reminder before their pages load.
+- Redirects blocked tabs that were already open when blocking is enabled again.
 - Shows the objectives you chose in the Focus Plan.
 - Requires two reflection steps before granting a 2-minute break.
 - Keeps each blocked-page break limited to the website that requested it.
 - Counts blocked attempts by website.
 - Shows focus returns, estimated time saved, and per-site charts.
 - Stores settings and analytics only in local Chrome storage.
+- Uses Chrome's local favicon cache to show each blocked website's icon.
 - Makes no API calls and requires no account, API key, or subscription.
 
 ## Screenshots
@@ -73,7 +75,7 @@ Use $install-scroll-stop to install and customize Scroll Stop in Chrome.
 - Use **Go back** when a blocked site interrupts you.
 - If access is genuinely needed, complete both reflection prompts to start a 2-minute break.
 
-The challenge copy uses the website that triggered the interruption. For example, `reddit.com` appears as Reddit, `youtube.com` appears as YouTube, and custom domains receive a readable name derived from their domain.
+Newly added websites use their favicon from Chrome's local favicon cache. The challenge copy also uses the website that triggered the interruption. For example, `reddit.com` appears as Reddit, `youtube.com` appears as YouTube, and custom domains receive a readable name derived from their domain.
 
 ## Privacy
 
@@ -97,7 +99,7 @@ npm run verify
 npm run verify:landing
 ```
 
-The unit suite covers domain normalization, redirect attribution, dynamic website copy, analytics calculations, focus goals, the two-step break challenge, and serialized rule updates. The browser verification loads the unpacked extension in an isolated Chromium profile and checks the complete popup and redirect flows.
+The unit suite covers domain normalization, open-tab matching, redirect attribution, dynamic website copy, analytics calculations, focus goals, the two-step break challenge, and serialized rule updates. The browser verification loads the unpacked extension in an isolated Chromium profile and checks the complete popup, favicon, and redirect flows.
 
 ## Project structure
 

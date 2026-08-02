@@ -564,14 +564,18 @@ h2 {
 }
 
 .site-icon {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
   width: 31px;
   height: 31px;
+  overflow: hidden;
+  border: 1.5px solid var(--tan-soft);
   border-radius: 11px;
-  box-shadow: inset 0 -3px 0 rgba(52, 52, 51, 0.1);
+  background: var(--white);
+  box-shadow: 0 3px 0 rgba(178, 167, 154, 0.16);
 }
 
 .site-icon svg {
@@ -579,32 +583,38 @@ h2 {
   height: 16px;
 }
 
-.site-icon-linkedin {
-  background: #e8f3ff;
-  color: var(--linkedin);
-}
-
-.site-icon-linkedin svg,
-.site-icon-x svg {
-  fill: currentColor;
-}
-
-.site-icon-x {
-  background: var(--ink);
-  color: var(--white);
-}
-
-.site-icon-generic {
+.site-icon-favicon {
   background: linear-gradient(150deg, var(--gold-light), var(--gold));
   color: #7a4a00;
 }
 
-.site-icon-generic svg {
+.site-icon-favicon.has-favicon {
+  background: var(--white);
+}
+
+.site-favicon-fallback {
+  position: absolute;
+  transition: opacity 180ms ease;
+}
+
+.site-favicon-fallback {
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.5;
+}
+
+.site-favicon {
+  position: relative;
+  z-index: 1;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.site-icon.has-favicon .site-favicon-fallback {
+  opacity: 0;
 }
 
 .site-name {
