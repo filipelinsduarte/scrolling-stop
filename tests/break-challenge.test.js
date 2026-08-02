@@ -33,6 +33,13 @@ describe("break challenge", () => {
       "LinkedIn can wait.",
     );
     expect(getBlockedSiteLabel("twitter.com")).toBe("X");
-    expect(getBlockedSiteLabel("reddit.com")).toBe("reddit.com");
+    expect(getBlockedSiteLabel("reddit.com")).toBe("Reddit");
+    expect(getBlockedSiteLabel("old.reddit.com")).toBe("Reddit");
+    expect(getBlockedSiteLabel("youtube.com")).toBe("YouTube");
+    expect(getBlockedSiteLabel("example.co.uk")).toBe("Example");
+    expect(getBlockedSiteLabel("my-focus-site.com")).toBe("My Focus Site");
+    expect(getBreakChallengeStep(0, "reddit.com").message).toContain(
+      "Reddit can wait.",
+    );
   });
 });

@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#1a88f8">
+    <meta
+      name="description"
+      content="Scrolling Stop is an open-source Chrome extension that blocks distracting sites and brings your focus goals back when attention drifts."
+    >
+    <title>Scrolling Stop | Stop the scroll. Return to your focus.</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="stylesheet" href="site.css">
+    <script>document.documentElement.className = "js";</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-nav" data-site-nav>
+      <div class="wrap nav-inner">
+        <a class="brand" href="#top" aria-label="Scrolling Stop home">
+          <span class="brand-mark" aria-hidden="true">
+            <span></span>
+            <span></span>
+          </span>
+          <span>Scrolling Stop</span>
+        </a>
+
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="#how-it-works">How it works</a>
+          <a href="#preview">Preview</a>
+          <a href="#open-source">Open source</a>
+        </nav>
+
+        <div class="nav-actions">
+          <a
+            class="button button-small button-outline nav-github"
+            href="https://github.com/filipelinsduarte/scrolling-stop"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2.8a9.2 9.2 0 0 0-2.9 17.9c.5.1.6-.2.6-.5v-1.8c-2.7.6-3.3-1.1-3.3-1.1-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 0 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.8.8.1-.7.4-1.1.7-1.4-2.2-.2-4.4-1.1-4.4-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.2.1-2.5 0 0 .8-.3 2.5 1a8.7 8.7 0 0 1 4.6 0c1.8-1.2 2.5-1 2.5-1 .5 1.3.2 2.2.1 2.5.6.7 1 1.5 1 2.5 0 3.5-2.2 4.3-4.4 4.6.4.3.7.9.7 1.8v2.5c0 .4.2.6.7.5A9.2 9.2 0 0 0 12 2.8Z"></path>
+            </svg>
+            <span class="nav-github-label">GitHub Open Repo</span>
+          </a>
+          <a
+            class="button button-small button-blue nav-download"
+            href="downloads/scrolling-stop-extension-v1.5.1.zip"
+            download
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v12m0 0 5-5m-5 5-5-5M5 20h14"></path>
+            </svg>
+            <span class="nav-download-full">Download Chrome Extension</span>
+            <span class="nav-download-short">Download</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section id="top" class="hero">
+        <div class="wrap hero-grid">
+          <div class="hero-copy reveal is-visible">
+            <p class="kicker"><span></span> Open source. Local only. Yours.</p>
+            <h1>Stop the scroll.<br><em>Return to your focus.</em></h1>
+            <p class="hero-lede">
+              Block the websites that pull you in, bring your goals back at the exact moment
+              attention drifts, and see how often you choose focus instead.
+            </p>
+            <div class="hero-actions">
+              <a
+                class="button button-blue button-large"
+                href="downloads/scrolling-stop-extension-v1.5.1.zip"
+                download
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3v12m0 0 5-5m-5 5-5-5M5 20h14"></path>
+                </svg>
+                Download Chrome Extension
+              </a>
+              <a
+                class="button button-outline button-large"
+                href="https://github.com/filipelinsduarte/scrolling-stop"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 2.8a9.2 9.2 0 0 0-2.9 17.9c.5.1.6-.2.6-.5v-1.8c-2.7.6-3.3-1.1-3.3-1.1-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 0 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.8.8.1-.7.4-1.1.7-1.4-2.2-.2-4.4-1.1-4.4-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.2.1-2.5 0 0 .8-.3 2.5 1a8.7 8.7 0 0 1 4.6 0c1.8-1.2 2.5-1 2.5-1 .5 1.3.2 2.2.1 2.5.6.7 1 1.5 1 2.5 0 3.5-2.2 4.3-4.4 4.6.4.3.7.9.7 1.8v2.5c0 .4.2.6.7.5A9.2 9.2 0 0 0 12 2.8Z"></path>
+                </svg>
+                GitHub Open Repo
+              </a>
+            </div>
+            <ul class="hero-notes" aria-label="Product highlights">
+              <li><span class="note-dot note-green"></span>No account</li>
+              <li><span class="note-dot note-blue"></span>No tracking</li>
+              <li><span class="note-dot note-orange"></span>2-minute breaks</li>
+            </ul>
+          </div>
+
+          <div class="hero-product reveal is-visible" aria-label="Scrolling Stop extension preview">
+            <span class="toy toy-orange" aria-hidden="true"></span>
+            <span class="toy toy-purple" aria-hidden="true"></span>
+            <span class="toy toy-gold" aria-hidden="true"></span>
+            <div class="product-shadow" aria-hidden="true"></div>
+            <div class="browser-cap">
+              <span></span><span></span><span></span>
+              <p>Chrome extension</p>
+            </div>
+            <div class="product-card">
+              <img
+                src="screenshots/main-popup.jpg"
+                alt="Scrolling Stop popup with focus plan, attention report, and blocked websites"
+                width="379"
+                height="596"
+              >
+            </div>
+            <div class="focus-chip chip-one">
+              <span class="chip-icon chip-green" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="m6 12 4 4 8-9"></path></svg>
+              </span>
+              Back to the plan
+            </div>
+            <div class="focus-chip chip-two">
+              <span class="chip-icon chip-orange" aria-hidden="true">12</span>
+              attempts stopped
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="trust-strip" aria-label="Privacy and compatibility">
+        <div class="wrap trust-grid">
+          <p><strong>100%</strong><span>local Chrome storage</span></p>
+          <p><strong>Any site</strong><span>gets its own reminder</span></p>
+          <p><strong>Unlimited</strong><span>focus objectives</span></p>
+          <p><strong>MIT</strong><span>open-source license</span></p>
+        </div>
+      </section>
+
+      <section id="how-it-works" class="section how-section">
+        <div class="wrap">
+          <div class="section-heading reveal">
+            <p class="kicker kicker-green"><span></span> A gentler guardrail</p>
+            <h2>Three small steps away from autopilot.</h2>
+            <p>Scrolling Stop adds just enough friction to help your intentional choice win.</p>
+          </div>
+
+          <div class="steps-grid">
+            <article class="step-card reveal">
+              <div class="step-prop prop-green" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+              </div>
+              <span class="step-number">01</span>
+              <h3>Set your focus</h3>
+              <p>Add as many objectives as you need. They stay private in your browser.</p>
+              <span class="step-tag">Unlimited goals</span>
+            </article>
+
+            <article class="step-card reveal">
+              <div class="step-prop prop-orange" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M8 7v10M16 7v10"></path></svg>
+              </div>
+              <span class="step-number">02</span>
+              <h3>Meet the pause</h3>
+              <p>Open a blocked site and your own plan appears before the scroll can begin.</p>
+              <span class="step-tag">Site-specific copy</span>
+            </article>
+
+            <article class="step-card reveal">
+              <div class="step-prop prop-blue" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M6 18V11M12 18V6M18 18V9"></path></svg>
+              </div>
+              <span class="step-number">03</span>
+              <h3>See the pattern</h3>
+              <p>Track blocked attempts, estimated time saved, and returns to your focus.</p>
+              <span class="step-tag">Local analytics</span>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="pause-section">
+        <div class="wrap pause-grid">
+          <div class="pause-copy reveal">
+            <p class="kicker kicker-orange"><span></span> The useful interruption</p>
+            <h2>A reminder written by your focused self.</h2>
+            <p>
+              When Reddit, LinkedIn, X, or any custom site pulls you away, Scrolling Stop names
+              that exact site and shows the work you said mattered.
+            </p>
+            <ul class="check-list">
+              <li><span aria-hidden="true">✓</span>Two reflection steps before a break</li>
+              <li><span aria-hidden="true">✓</span>A short 2-minute break, never an open-ended pause</li>
+              <li><span aria-hidden="true">✓</span>Readable names for every blocked domain</li>
+            </ul>
+          </div>
+
+          <div class="pause-demo reveal">
+            <div class="pause-demo-top">
+              <span class="pause-logo" aria-hidden="true"><i></i><i></i></span>
+              <div>
+                <p class="eyebrow">Scroll stopped</p>
+                <h3>You came here on autopilot.</h3>
+              </div>
+            </div>
+            <div class="goal-reminder">
+              <p class="eyebrow">Your focus</p>
+              <strong>You said you would:</strong>
+              <ul>
+                <li><span></span>Finish the client proposal</li>
+                <li><span></span>Review the outreach pipeline</li>
+                <li><span></span>Plan tomorrow's priorities</li>
+              </ul>
+            </div>
+            <div class="pause-actions" aria-hidden="true">
+              <span class="fake-button fake-primary">Go back</span>
+              <span class="fake-button">I need 2 minutes</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="preview" class="section preview-section">
+        <div class="wrap">
+          <div class="section-heading reveal">
+            <p class="kicker kicker-purple"><span></span> Inside the extension</p>
+            <h2>Everything your focus needs. Nothing it does not.</h2>
+            <p>A compact Chrome UI with clear actions, calm color, and no account setup.</p>
+          </div>
+
+          <div class="screens-grid">
+            <figure class="screen-card screen-main reveal">
+              <div class="screen-label"><span class="label-blue"></span>Main popup</div>
+              <img
+                src="screenshots/main-popup.jpg"
+                alt="Main popup showing Scroll Stop controls"
+                width="379"
+                height="596"
+                loading="lazy"
+              >
+              <figcaption>Block a site, edit your focus, or check your attention report.</figcaption>
+            </figure>
+            <figure class="screen-card screen-focus reveal">
+              <div class="screen-label"><span class="label-green"></span>Focus plan</div>
+              <img
+                src="screenshots/focus-plan.jpg"
+                alt="Focus Plan objective editor"
+                width="380"
+                height="597"
+                loading="lazy"
+              >
+              <figcaption>Add unlimited objectives and bring them back when attention drifts.</figcaption>
+            </figure>
+            <figure class="screen-card screen-report reveal">
+              <div class="screen-label"><span class="label-orange"></span>Attention report</div>
+              <img
+                src="screenshots/attention-report.jpg"
+                alt="Attention Report with blocked attempts and time saved"
+                width="375"
+                height="597"
+                loading="lazy"
+              >
+              <figcaption>See the pull by website and estimate the focus you saved.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section id="open-source" class="section source-section">
+        <div class="wrap source-card reveal">
+          <span class="source-toy source-toy-one" aria-hidden="true"></span>
+          <span class="source-toy source-toy-two" aria-hidden="true"></span>
+          <div class="source-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2.8a9.2 9.2 0 0 0-2.9 17.9c.5.1.6-.2.6-.5v-1.8c-2.7.6-3.3-1.1-3.3-1.1-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 0 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.8.8.1-.7.4-1.1.7-1.4-2.2-.2-4.4-1.1-4.4-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.2.1-2.5 0 0 .8-.3 2.5 1a8.7 8.7 0 0 1 4.6 0c1.8-1.2 2.5-1 2.5-1 .5 1.3.2 2.2.1 2.5.6.7 1 1.5 1 2.5 0 3.5-2.2 4.3-4.4 4.6.4.3.7.9.7 1.8v2.5c0 .4.2.6.7.5A9.2 9.2 0 0 0 12 2.8Z"></path>
+            </svg>
+          </div>
+          <div class="source-copy">
+            <p class="kicker kicker-blue"><span></span> Built in the open</p>
+            <h2>Inspect it. Change it. Make it yours.</h2>
+            <p>
+              The complete source, install skill, automated tests, and contribution guide are
+              public. There are no API keys, subscriptions, or remote analytics.
+            </p>
+            <div class="source-actions">
+              <a
+                class="button button-ink button-large"
+                href="https://github.com/filipelinsduarte/scrolling-stop"
+              >
+                GitHub Open Repo
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg>
+              </a>
+              <a class="text-link" href="https://github.com/filipelinsduarte/scrolling-stop/blob/main/skills/install-scroll-stop/SKILL.md">
+                Copy the agent install skill
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="final-section">
+        <div class="wrap final-card reveal">
+          <span class="final-orbit orbit-one" aria-hidden="true"></span>
+          <span class="final-orbit orbit-two" aria-hidden="true"></span>
+          <p class="kicker kicker-green"><span></span> Your next tab can wait</p>
+          <h2>Give your attention somewhere worth keeping.</h2>
+          <p>Download Scrolling Stop, set your focus, and make the next detour intentional.</p>
+          <div class="hero-actions">
+            <a
+              class="button button-blue button-large"
+              href="downloads/scrolling-stop-extension-v1.5.1.zip"
+              download
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 20h14"></path></svg>
+              Download Chrome Extension
+            </a>
+            <a
+              class="button button-outline button-large"
+              href="https://github.com/filipelinsduarte/scrolling-stop"
+            >
+              GitHub Open Repo
+            </a>
+          </div>
+          <p class="final-note">Version 1.5.1 · Chrome 120+ · MIT licensed</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-inner">
+        <a class="brand footer-brand" href="#top">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span></span>
+          <span>Scrolling Stop</span>
+        </a>
+        <p>Open-source attention guardrails for Chrome.</p>
+        <div class="footer-links">
+          <a href="https://github.com/filipelinsduarte/scrolling-stop">GitHub</a>
+          <a href="https://github.com/filipelinsduarte/scrolling-stop/blob/main/README.md">Install guide</a>
+          <a href="https://github.com/filipelinsduarte/scrolling-stop/blob/main/SECURITY.md">Security</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="site.js" defer></script>
+  </body>
+</html>

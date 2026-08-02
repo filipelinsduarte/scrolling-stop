@@ -1080,25 +1080,20 @@ h2 {
   font-weight: 700;
 }
 
-.goal-field:nth-child(2) .goal-number {
+.goal-field:nth-child(4n + 2) .goal-number {
   background: linear-gradient(150deg, var(--gold-light), var(--gold));
   color: #754700;
   box-shadow: inset 0 -4px 0 rgba(180, 110, 0, 0.2);
 }
 
-.goal-field:nth-child(3) .goal-number {
+.goal-field:nth-child(4n + 3) .goal-number {
   background: linear-gradient(150deg, var(--orange-light), var(--orange));
   box-shadow: inset 0 -4px 0 rgba(160, 40, 0, 0.22);
 }
 
-.goal-field:nth-child(4) .goal-number {
+.goal-field:nth-child(4n) .goal-number {
   background: linear-gradient(150deg, var(--purple-light), var(--purple));
   box-shadow: inset 0 -4px 0 rgba(80, 20, 150, 0.22);
-}
-
-.goal-field:nth-child(5) .goal-number {
-  background: linear-gradient(150deg, var(--orange-light), var(--orange));
-  box-shadow: inset 0 -4px 0 rgba(160, 40, 0, 0.22);
 }
 
 .goal-field input {

@@ -135,7 +135,7 @@ async function handleBreakChallengeAdvance(elements) {
 async function pauseBlocking(pauseButton, notice) {
   pauseButton.disabled = true;
   try {
-    await sendMessage({ type: "pauseBlocking" });
+    await sendMessage({ type: "pauseDomain", domain: blockedDomain });
     showNotice(notice, `Blocking is paused for ${BREAK_DURATION_MINUTES} minutes.`);
     window.setTimeout(goBack, 350);
   } catch (error) {

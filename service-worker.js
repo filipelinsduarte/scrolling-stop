@@ -18,6 +18,7 @@ const SETTINGS_KEYS = [
   "blockedDomains",
   "focusGoals",
   "pausedUntil",
+  "pausedDomain",
   "analytics",
 ];
 const RESUME_ALARM = "resume-blocking";
@@ -27,6 +28,7 @@ const enqueueAnalyticsUpdate = createTaskQueue();
 function settingsAreEqual(first, second) {
   return first.enabled === second.enabled
     && first.pausedUntil === second.pausedUntil
+    && first.pausedDomain === second.pausedDomain
     && JSON.stringify(first.blockedDomains) === JSON.stringify(second.blockedDomains)
     && JSON.stringify(first.focusGoals) === JSON.stringify(second.focusGoals)
     && JSON.stringify(first.analytics) === JSON.stringify(second.analytics);
@@ -60,10 +62,11 @@ async function syncBlockingRules() {
     addRules,
   });
 
-  const isPaused = settings.pausedUntil > Date.now();
+  const hasActivePause = settings.pausedUntil > Date.now();
+  const isGlobalPause = hasActivePause && !settings.pausedDomain;
   const badgeText = !settings.enabled
     ? "off"
-    : isPaused
+    : isGlobalPause
       ? String(BREAK_DURATION_MINUTES)
       : "";
   await chrome.action.setBadgeBackgroundColor({ color: "#C94F38" });
@@ -92,7 +95,8 @@ async function getPublicState() {
 
   return {
     ...settings,
-    isPaused: pauseRemainingMs > 0,
+    isPaused: pauseRemainingMs > 0 && !settings.pausedDomain,
+    hasSitePause: pauseRemainingMs > 0 && Boolean(settings.pausedDomain),
     pauseRemainingMs,
   };
 }
@@ -103,6 +107,7 @@ async function setEnabled(message) {
     ...settings,
     enabled: Boolean(message.enabled),
     pausedUntil: 0,
+    pausedDomain: null,
   });
   await chrome.alarms.clear(RESUME_ALARM);
   await scheduleRuleSync();
@@ -138,7 +143,35 @@ async function removeDomain(message) {
 async function pauseBlocking() {
   const settings = await readSettings();
   const pausedUntil = Date.now() + BREAK_DURATION_MS;
-  await writeSettings({ ...settings, enabled: true, pausedUntil });
+  await writeSettings({
+    ...settings,
+    enabled: true,
+    pausedUntil,
+    pausedDomain: null,
+  });
+  await chrome.alarms.create(RESUME_ALARM, { when: pausedUntil });
+  await scheduleRuleSync();
+  return getPublicState();
+}
+
+async function pauseDomain(message) {
+  const domain = normalizeDomain(message.domain);
+  if (!domain) {
+    throw new Error("The website break could not be identified.");
+  }
+
+  const settings = await readSettings();
+  if (!settings.blockedDomains.includes(domain)) {
+    throw new Error("That website is not in the blocked list.");
+  }
+
+  const pausedUntil = Date.now() + BREAK_DURATION_MS;
+  await writeSettings({
+    ...settings,
+    enabled: true,
+    pausedUntil,
+    pausedDomain: domain,
+  });
   await chrome.alarms.create(RESUME_ALARM, { when: pausedUntil });
   await scheduleRuleSync();
   return getPublicState();
@@ -146,7 +179,7 @@ async function pauseBlocking() {
 
 async function resumeBlocking() {
   const settings = await readSettings();
-  await writeSettings({ ...settings, pausedUntil: 0 });
+  await writeSettings({ ...settings, pausedUntil: 0, pausedDomain: null });
   await chrome.alarms.clear(RESUME_ALARM);
   await scheduleRuleSync();
   return getPublicState();
@@ -190,6 +223,7 @@ const MESSAGE_HANDLERS = {
   addDomain,
   getState: getPublicState,
   pauseBlocking,
+  pauseDomain,
   recordBlockAttempt,
   recordFocusReturn,
   removeDomain,
@@ -204,6 +238,8 @@ function runSafely(label, task) {
   });
 }
 
+runSafely("service worker boot", initialize);
+
 chrome.runtime.onInstalled.addListener(() => {
   runSafely("installation", initialize);
 });
@@ -217,7 +253,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     return;
   }
 
-  const ruleSettingChanged = ["enabled", "blockedDomains", "pausedUntil"]
+  const ruleSettingChanged = ["enabled", "blockedDomains", "pausedUntil", "pausedDomain"]
     .some((key) => Object.hasOwn(changes, key));
   if (!ruleSettingChanged) {
     return;

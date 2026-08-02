@@ -13,12 +13,46 @@ export const BREAK_CHALLENGE_STEPS = Object.freeze([
 ]);
 
 export function getBlockedSiteLabel(domain) {
-  const labels = {
-    "linkedin.com": "LinkedIn",
-    "twitter.com": "X",
-    "x.com": "X",
+  if (typeof domain !== "string" || !domain.trim()) {
+    return "This site";
+  }
+
+  const normalizedDomain = domain.trim().toLowerCase().replace(/^www\./, "");
+  const domainParts = normalizedDomain.split(".").filter(Boolean);
+  const commonCompoundSuffixes = new Set([
+    "co.uk",
+    "com.au",
+    "com.br",
+    "com.mx",
+    "co.nz",
+    "co.jp",
+  ]);
+  const compoundSuffix = domainParts.slice(-2).join(".");
+  const hasCompoundSuffix = commonCompoundSuffixes.has(compoundSuffix);
+  const labelIndex = hasCompoundSuffix && domainParts.length >= 3
+    ? domainParts.length - 3
+    : Math.max(0, domainParts.length - 2);
+  const rawLabel = domainParts[labelIndex] || normalizedDomain;
+  const knownLabels = {
+    github: "GitHub",
+    instagram: "Instagram",
+    linkedin: "LinkedIn",
+    reddit: "Reddit",
+    tiktok: "TikTok",
+    twitter: "X",
+    x: "X",
+    youtube: "YouTube",
   };
-  return labels[domain] || domain || "This site";
+
+  if (knownLabels[rawLabel]) {
+    return knownLabels[rawLabel];
+  }
+
+  return rawLabel
+    .split("-")
+    .filter(Boolean)
+    .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
+    .join(" ");
 }
 
 export function getBreakChallengeStep(stepIndex, domain) {

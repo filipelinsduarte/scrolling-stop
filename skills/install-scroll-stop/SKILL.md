@@ -11,7 +11,7 @@ Install Scroll Stop from its canonical repository and leave the user with a veri
 
 Use the exact repository URL:
 
-`https://github.com/filipelinsduarte/scroll-stop`
+`https://github.com/filipelinsduarte/scrolling-stop`
 
 1. Ask for a destination only if the user has not indicated one and choosing could overwrite an existing folder.
 2. If the repository is absent, clone it into a normal user-owned directory.
@@ -52,7 +52,9 @@ Ask the user to click **Reload** on Scroll Stop in `chrome://extensions`. If Chr
 
 - Change initial blocked domains through `DEFAULT_SETTINGS.blockedDomains` in `src/blocker.js`.
 - Keep user-added domains in Chrome local storage rather than hardcoding them.
+- Preserve unlimited Focus Plan objectives unless the user explicitly requests a cap.
 - Preserve the two reflection steps and 2-minute break unless the user explicitly requests different behavior.
+- Keep blocked-page breaks site-specific. A break for one domain must not unblock any other domain. Keep only the popup pause global.
 - Keep website-specific challenge copy derived from the `domain` query parameter. Test both LinkedIn and X after changing redirect or challenge logic.
 - Preserve local-only analytics and label estimated time as an estimate.
 - Reuse the existing design tokens and Toy Grade components.

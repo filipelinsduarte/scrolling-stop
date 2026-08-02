@@ -140,6 +140,30 @@ try {
   );
   await initialGoalInputs.nth(0).fill("Finish the client proposal");
   await initialGoalInputs.nth(1).fill("Review the outreach pipeline");
+  for (let goalIndex = 0; goalIndex < 4; goalIndex += 1) {
+    await popupPage.locator("#add-goal-button").click();
+  }
+  await popupPage.waitForFunction(() => {
+    return document.querySelectorAll("input[data-goal-input]").length === 7;
+  });
+  const unlimitedGoalValues = [
+    "Plan tomorrow's priorities",
+    "Send the project update",
+    "Review this week's metrics",
+    "Prepare the client call",
+    "Clear the finance inbox",
+  ];
+  for (let goalIndex = 2; goalIndex < 7; goalIndex += 1) {
+    await initialGoalInputs.nth(goalIndex).fill(unlimitedGoalValues[goalIndex - 2]);
+  }
+  assert(
+    await initialGoalInputs.count() === 7,
+    "The Focus Plan stopped accepting objectives after five rows.",
+  );
+  assert(
+    !await popupPage.locator("#add-goal-button").isDisabled(),
+    "The Add objective button became disabled after more than five rows.",
+  );
 
   const focusPageAudit = await auditLayout(popupPage, [
     ".focus-page-intro h2",
@@ -161,7 +185,7 @@ try {
   await waitForText(
     popupPage,
     "#focus-summary",
-    "Finish the client proposal +1 more",
+    "Finish the client proposal +6 more",
   );
   assert(
     await popupPage.locator("#focus-action-label").textContent() === "Edit",
@@ -179,7 +203,7 @@ try {
   await waitForText(
     popupPage,
     "#focus-summary",
-    "Finish the client proposal +1 more",
+    "Finish the client proposal +6 more",
   );
 
   await popupPage.locator("#site-input").fill("https://www.reddit.com/r/all");
@@ -324,9 +348,14 @@ try {
   await blockedPage.locator("#challenge-continue-button").click();
   await blockedPage.waitForTimeout(500);
   const storedPause = await serviceWorker.evaluate(async () => {
-    const settings = await chrome.storage.local.get(["pausedUntil", "analytics"]);
+    const settings = await chrome.storage.local.get([
+      "pausedUntil",
+      "pausedDomain",
+      "analytics",
+    ]);
     return {
       pauseRemainingMs: settings.pausedUntil - Date.now(),
+      pausedDomain: settings.pausedDomain,
       analytics: settings.analytics,
     };
   });
@@ -335,17 +364,58 @@ try {
     `The approved break was not limited to 2 minutes: ${storedPause.pauseRemainingMs}ms remained.`,
   );
   assert(
+    storedPause.pausedDomain === "linkedin.com",
+    `The LinkedIn break was not site-specific: ${storedPause.pausedDomain}`,
+  );
+  assert(
     storedPause.analytics.totalBlockedAttempts === 1
       && storedPause.analytics.blockedByDomain["linkedin.com"] === 1,
     "The first LinkedIn block was not recorded in analytics.",
   );
 
+  const xDuringLinkedInBreakPage = await context.newPage();
+  collectErrors(xDuringLinkedInBreakPage, "X during LinkedIn break");
+  await xDuringLinkedInBreakPage.goto("https://x.com/home", {
+    waitUntil: "domcontentloaded",
+    timeout: 15_000,
+  });
+  const xDuringLinkedInBreakUrl = new URL(xDuringLinkedInBreakPage.url());
+  assert(
+    xDuringLinkedInBreakUrl.protocol === "chrome-extension:"
+      && xDuringLinkedInBreakUrl.host === extensionId
+      && xDuringLinkedInBreakUrl.pathname === "/blocked.html"
+      && xDuringLinkedInBreakUrl.searchParams.get("domain") === "x.com",
+    `A LinkedIn break incorrectly unblocked X. Chrome ended at ${xDuringLinkedInBreakPage.url()}`,
+  );
+  await waitForText(
+    xDuringLinkedInBreakPage,
+    "#blocked-title",
+    "You came here on autopilot.",
+  );
+  await xDuringLinkedInBreakPage.waitForFunction(async () => {
+    const response = await chrome.runtime.sendMessage({ type: "getState" });
+    return response?.data?.analytics?.blockedByDomain?.["x.com"] === 1;
+  });
+
   const analyticsPage = await context.newPage();
   collectErrors(analyticsPage, "Analytics popup");
   await analyticsPage.setViewportSize({ width: 388, height: 600 });
   await analyticsPage.goto(`chrome-extension://${extensionId}/popup.html`);
-  await waitForText(analyticsPage, "#status-title", "Taking a short break");
-  await analyticsPage.locator("#pause-button").click();
+  await waitForText(analyticsPage, "#status-title", "Blocking is active");
+  const sitePauseState = await analyticsPage.evaluate(() => {
+    return chrome.runtime.sendMessage({ type: "getState" });
+  });
+  assert(
+    sitePauseState.ok
+      && sitePauseState.data.hasSitePause
+      && sitePauseState.data.pausedDomain === "linkedin.com"
+      && !sitePauseState.data.isPaused,
+    "The popup treated a LinkedIn-only break as a global pause.",
+  );
+  await analyticsPage.evaluate(() => {
+    return chrome.runtime.sendMessage({ type: "resumeBlocking" });
+  });
+  await analyticsPage.reload();
   await waitForText(analyticsPage, "#status-title", "Blocking is active");
 
   const returnPage = await context.newPage();
@@ -363,7 +433,7 @@ try {
   await waitForText(
     analyticsPage,
     "#analytics-launch-summary",
-    "2 attempts · 5m saved",
+    "3 attempts · 5m saved",
   );
   assert(
     await analyticsPage.locator("#analytics-view").getAttribute("aria-hidden") === "true",
@@ -375,10 +445,10 @@ try {
       && document.getElementById("analytics-view")?.getAttribute("aria-hidden") === "false";
   });
   await analyticsPage.waitForTimeout(520);
-  await waitForText(analyticsPage, "#analytics-attempts", "2");
+  await waitForText(analyticsPage, "#analytics-attempts", "3");
   await waitForText(analyticsPage, "#analytics-time-saved", "5m");
   await waitForText(analyticsPage, "#analytics-focus-returns", "1");
-  await waitForText(analyticsPage, "#analytics-return-rate", "50%");
+  await waitForText(analyticsPage, "#analytics-return-rate", "33%");
   const linkedInAnalytics = analyticsPage
     .locator(".analytics-domain-item")
     .filter({ hasText: "LinkedIn" });
@@ -388,8 +458,8 @@ try {
     "The LinkedIn analytics row did not show two blocked attempts.",
   );
   assert(
-    await linkedInAnalytics.locator(".analytics-domain-chart").getAttribute("aria-valuenow") === "100",
-    "The LinkedIn attempt-share chart did not represent all recorded attempts.",
+    await linkedInAnalytics.locator(".analytics-domain-chart").getAttribute("aria-valuenow") === "67",
+    "The LinkedIn attempt-share chart did not represent two of three recorded attempts.",
   );
   const analyticsAudit = await auditLayout(analyticsPage, [
     ".analytics-page-intro h2",
@@ -417,7 +487,7 @@ try {
   await waitForText(
     analyticsPage,
     "#analytics-launch-summary",
-    "2 attempts · 5m saved",
+    "3 attempts · 5m saved",
   );
 
   const xBlockedPage = await context.newPage();
@@ -449,6 +519,28 @@ try {
     "The X break challenge still displayed LinkedIn copy.",
   );
 
+  const redditBlockedPage = await context.newPage();
+  collectErrors(redditBlockedPage, "Reddit blocked screen");
+  await redditBlockedPage.goto("https://www.reddit.com/r/all", {
+    waitUntil: "domcontentloaded",
+    timeout: 15_000,
+  });
+  const redditBlockedUrl = new URL(redditBlockedPage.url());
+  assert(
+    redditBlockedUrl.protocol === "chrome-extension:"
+      && redditBlockedUrl.host === extensionId
+      && redditBlockedUrl.pathname === "/blocked.html"
+      && redditBlockedUrl.searchParams.get("domain") === "reddit.com",
+    `Reddit was not attributed correctly. Chrome ended at ${redditBlockedPage.url()}`,
+  );
+  await waitForText(redditBlockedPage, "#focus-reminder-title", "You said you would:");
+  await redditBlockedPage.locator("#pause-button").click();
+  await waitForText(
+    redditBlockedPage,
+    "#break-challenge-message",
+    "Reddit can wait. Will opening it help the focus you chose, or pull you further away from it?",
+  );
+
   assert(browserErrors.length === 0, browserErrors.join("\n"));
 
   console.log(JSON.stringify({
@@ -456,11 +548,13 @@ try {
     checks: {
       defaultDomains: true,
       focusGoalSave: true,
+      unlimitedFocusGoals: true,
       focusPageNavigation: true,
       focusBackNavigation: true,
       blockedGoalReminder: true,
       twoStepBreakChallenge: true,
       twoMinuteBreakLimit: true,
+      siteScopedBreak: true,
       analyticsByDomain: true,
       estimatedTimeSaved: true,
       focusReturnTracking: true,
@@ -472,6 +566,7 @@ try {
       timedPause: true,
       linkedinRedirect: true,
       dynamicBlockedSiteCopy: true,
+      genericBlockedSiteLabels: true,
       consoleErrors: 0,
       popupHorizontalOverflow: popupAudit.horizontalOverflow,
       focusPageHorizontalOverflow: focusPageAudit.horizontalOverflow,

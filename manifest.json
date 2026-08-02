@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Scroll Stop",
   "short_name": "Scroll Stop",
-  "version": "1.4.1",
+  "version": "1.5.1",
   "description": "Block distracting sites and bring your own focus goals back when attention drifts.",
   "minimum_chrome_version": "120",
   "permissions": [

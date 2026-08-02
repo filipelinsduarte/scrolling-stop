@@ -1,13 +1,14 @@
 {
   "name": "scroll-stop",
-  "version": "1.4.1",
+  "version": "1.5.1",
   "private": true,
   "type": "module",
   "scripts": {
     "icons": "node scripts/generate-icons.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify": "node scripts/verify-extension.mjs"
+    "verify": "node scripts/verify-extension.mjs",
+    "verify:landing": "node scripts/verify-landing.mjs"
   },
   "devDependencies": {
     "playwright": "^1.62.1",

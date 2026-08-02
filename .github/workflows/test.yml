@@ -29,3 +29,5 @@ jobs:
           node --check blocked.js
           node --check service-worker.js
           node --check scripts/verify-extension.mjs
+          node --check scripts/verify-landing.mjs
+          node --check docs/site.js

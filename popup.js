@@ -8,7 +8,6 @@ const state = {
   settings: null,
 };
 
-const MAX_GOALS = 5;
 const EMPTY_EDITOR_GOALS = ["", "", ""];
 
 const elements = {};
@@ -438,7 +437,7 @@ function createGoalField(value, index, totalGoals) {
 }
 
 function renderGoalFields(goals, focusIndex = null) {
-  const safeGoals = Array.isArray(goals) ? goals.slice(0, MAX_GOALS) : [""];
+  const safeGoals = Array.isArray(goals) ? [...goals] : [""];
   if (safeGoals.length === 0) {
     safeGoals.push("");
   }
@@ -449,8 +448,7 @@ function renderGoalFields(goals, focusIndex = null) {
     fragment.append(createGoalField(goal, index, safeGoals.length));
   });
   elements.goalFields.replaceChildren(fragment);
-  elements.addGoalButton.disabled = safeGoals.length >= MAX_GOALS;
-  elements.addGoalButton.classList.toggle("is-complete", safeGoals.length >= MAX_GOALS);
+  elements.addGoalButton.disabled = false;
 
   if (focusIndex !== null) {
     const inputs = elements.goalFields.querySelectorAll("input[data-goal-input]");
@@ -506,10 +504,6 @@ function closeAnalyticsView() {
 
 function handleAddGoal() {
   const goals = getGoalFieldValues();
-  if (goals.length >= MAX_GOALS) {
-    return;
-  }
-
   goals.push("");
   renderGoalFields(goals, goals.length - 1);
 }

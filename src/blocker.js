@@ -5,11 +5,11 @@ export const DEFAULT_SETTINGS = Object.freeze({
   blockedDomains: Object.freeze(["linkedin.com", "x.com", "twitter.com"]),
   focusGoals: Object.freeze([]),
   pausedUntil: 0,
+  pausedDomain: null,
   analytics: DEFAULT_ANALYTICS,
 });
 
 const SUPPORTED_PROTOCOLS = new Set(["http:", "https:"]);
-const MAX_FOCUS_GOALS = 5;
 const MAX_GOAL_CHARACTERS = 120;
 
 export function normalizeDomain(input) {
@@ -94,9 +94,6 @@ export function normalizeFocusGoals(input) {
     seenGoals.add(goalIdentity);
     goals.push(goal);
 
-    if (goals.length === MAX_FOCUS_GOALS) {
-      break;
-    }
   }
 
   return goals;
@@ -125,6 +122,9 @@ export function getEffectiveSettings(rawSettings, defaults, now = Date.now()) {
   const pausedUntil = Number.isFinite(storedPause) && storedPause > now
     ? storedPause
     : 0;
+  const pausedDomain = pausedUntil > 0
+    ? normalizeDomain(safeRawSettings.pausedDomain)
+    : null;
   const analytics = normalizeAnalytics(safeRawSettings.analytics);
 
   return {
@@ -132,17 +132,25 @@ export function getEffectiveSettings(rawSettings, defaults, now = Date.now()) {
     blockedDomains,
     focusGoals,
     pausedUntil,
+    pausedDomain,
     analytics,
   };
 }
 
 export function buildBlockingRules(settings, now = Date.now()) {
-  const isPaused = settings.pausedUntil > now;
-  if (!settings.enabled || isPaused) {
+  const hasActivePause = settings.pausedUntil > now;
+  const pausedDomain = hasActivePause
+    ? normalizeDomain(settings.pausedDomain)
+    : null;
+  const hasGlobalPause = hasActivePause && !pausedDomain;
+  if (!settings.enabled || hasGlobalPause) {
     return [];
   }
 
-  return normalizeDomainList(settings.blockedDomains).map((domain, index) => ({
+  const activeDomains = normalizeDomainList(settings.blockedDomains)
+    .filter((domain) => domain !== pausedDomain);
+
+  return activeDomains.map((domain, index) => ({
     id: index + 1,
     priority: 1,
     action: {

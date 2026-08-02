@@ -50,11 +50,11 @@ describe("normalizeFocusGoals", () => {
     ).toEqual(["Finish the client proposal", "Review outreach pipeline"]);
   });
 
-  it("caps the list at five goals and each goal at 120 characters", () => {
+  it("keeps more than five goals while limiting each goal to 120 characters", () => {
     const longGoal = "a".repeat(140);
     expect(
       normalizeFocusGoals([longGoal, "Two", "Three", "Four", "Five", "Six"]),
-    ).toEqual(["a".repeat(120), "Two", "Three", "Four", "Five"]);
+    ).toEqual(["a".repeat(120), "Two", "Three", "Four", "Five", "Six"]);
   });
 
   it("drops empty and non-string values", () => {
@@ -70,6 +70,7 @@ describe("getEffectiveSettings", () => {
     blockedDomains: ["linkedin.com", "x.com", "twitter.com"],
     focusGoals: [],
     pausedUntil: 0,
+    pausedDomain: null,
     analytics: {
       totalBlockedAttempts: 0,
       focusReturns: 0,
@@ -94,6 +95,7 @@ describe("getEffectiveSettings", () => {
       blockedDomains: ["x.com"],
       focusGoals: [],
       pausedUntil: 0,
+      pausedDomain: null,
       analytics: {
         totalBlockedAttempts: 0,
         focusReturns: 0,
@@ -110,6 +112,7 @@ describe("buildBlockingRules", () => {
       enabled: true,
       blockedDomains: ["linkedin.com", "x.com"],
       pausedUntil: 0,
+      pausedDomain: null,
     });
 
     expect(rules).toEqual([
@@ -146,6 +149,7 @@ describe("buildBlockingRules", () => {
         enabled: false,
         blockedDomains: ["x.com"],
         pausedUntil: 0,
+        pausedDomain: null,
       }),
     ).toEqual([]);
 
@@ -154,7 +158,26 @@ describe("buildBlockingRules", () => {
         enabled: true,
         blockedDomains: ["x.com"],
         pausedUntil: Date.now() + 60_000,
+        pausedDomain: null,
       }),
     ).toEqual([]);
+  });
+
+  it("keeps X blocked during a site-specific LinkedIn break", () => {
+    const rules = buildBlockingRules({
+      enabled: true,
+      blockedDomains: ["linkedin.com", "x.com", "reddit.com"],
+      pausedUntil: Date.now() + 60_000,
+      pausedDomain: "linkedin.com",
+    });
+
+    expect(rules.map((rule) => rule.condition.urlFilter)).toEqual([
+      "||x.com/",
+      "||reddit.com/",
+    ]);
+    expect(rules.map((rule) => rule.action.redirect.extensionPath)).toEqual([
+      "/blocked.html?domain=x.com",
+      "/blocked.html?domain=reddit.com",
+    ]);
   });
 });
