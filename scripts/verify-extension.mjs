@@ -132,6 +132,10 @@ try {
   await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
 
   await waitForText(popupPage, "#site-count", "3");
+  assert(
+    await popupPage.locator("#settings-challenge").isHidden(),
+    "The settings challenge was visible when the popup first opened.",
+  );
   const defaultSiteNames = await popupPage.locator(".site-name").allTextContents();
   assert(
     defaultSiteNames.includes("LinkedIn"),
