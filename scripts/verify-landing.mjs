@@ -96,6 +96,7 @@ async function auditViewport(page, viewport, screenshotName) {
     const productImage = document.querySelector(".product-card img");
     const galleryFrames = [...document.querySelectorAll(".screen-shot")];
     const galleryImages = [...document.querySelectorAll(".screen-shot img")];
+    const productScreenshotImages = [productImage, ...galleryImages].filter(Boolean);
     const images = [...document.images].map((image) => ({
       alt: image.alt,
       complete: image.complete,
@@ -121,6 +122,10 @@ async function auditViewport(page, viewport, screenshotName) {
       galleryImageObjectFits: galleryImages.map((image) => {
         return window.getComputedStyle(image).objectFit;
       }),
+      productScreenshotDensities: productScreenshotImages.map((image) => {
+        const renderedWidth = image.getBoundingClientRect().width;
+        return renderedWidth > 0 ? image.naturalWidth / renderedWidth : 0;
+      }),
       images,
     };
   });
@@ -134,7 +139,7 @@ async function auditViewport(page, viewport, screenshotName) {
   assert(audit.githubVisible, `${viewport.width}px GitHub CTA is hidden.`);
   assert(audit.chromeMarkVisible, `${viewport.width}px Chrome mark is hidden.`);
   assert(
-    Math.abs(audit.productImageAspectRatio - (379 / 596)) < 0.02,
+    Math.abs(audit.productImageAspectRatio - (388 / 600)) < 0.02,
     `${viewport.width}px hero product image does not preserve its natural aspect ratio.`,
   );
   assert(
@@ -145,6 +150,11 @@ async function auditViewport(page, viewport, screenshotName) {
   assert(
     audit.galleryImageObjectFits.every((objectFit) => objectFit === "cover"),
     `${viewport.width}px product gallery images are stretched instead of cropped proportionally.`,
+  );
+  assert(
+    audit.productScreenshotDensities.length === 4
+      && audit.productScreenshotDensities.every((density) => density >= 1.75),
+    `${viewport.width}px product screenshots do not have enough pixel density.`,
   );
   assert(
     audit.heroHeadingLastLineWords >= 2,
@@ -240,6 +250,7 @@ try {
       authenticChromeMark: true,
       proportionalHeroImage: true,
       proportionalGalleryImages: true,
+      highDensityProductScreenshots: true,
       downloadPackageExists: true,
       allImagesLoaded: true,
       consoleErrors: 0,

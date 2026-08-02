@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "capture:product-images": "node scripts/capture-product-images.mjs",
     "icons": "node scripts/generate-icons.mjs",
     "test": "vitest run",
     "test:watch": "vitest",

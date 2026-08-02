@@ -30,9 +30,9 @@ LinkedIn, X, and the legacy Twitter domain are blocked by default. Add or remove
     <td align="center"><strong>Attention Report</strong></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/main-popup.jpg" alt="Scroll Stop main Chrome popup"></td>
-    <td><img src="docs/screenshots/focus-plan.jpg" alt="Scroll Stop Focus Plan objective editor"></td>
-    <td><img src="docs/screenshots/attention-report.jpg" alt="Scroll Stop Attention Report analytics"></td>
+    <td><img src="docs/screenshots/main-popup.png" alt="Scroll Stop main Chrome popup"></td>
+    <td><img src="docs/screenshots/focus-plan.png" alt="Scroll Stop Focus Plan objective editor"></td>
+    <td><img src="docs/screenshots/attention-report.png" alt="Scroll Stop Attention Report analytics"></td>
   </tr>
 </table>
 
