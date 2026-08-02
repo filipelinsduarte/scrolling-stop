@@ -1,0 +1,19 @@
+# Scrolling Stop
+
+> Scrolling Stop is an open-source Chrome extension that blocks distracting websites and brings a user's focus goals back when attention drifts.
+
+## Product
+
+- [Home](https://scrollingstop.com/): Product overview, screenshots, and installation links.
+- [GitHub repository](https://github.com/filipelinsduarte/scrolling-stop): Source code, tests, security policy, and contribution guide.
+
+## Key capabilities
+
+- Block any website the user adds to the extension.
+- Show the user's own focus goals when a blocked site is opened.
+- Use two five-second holds and a short arithmetic check before a two-minute site break.
+- Keep goals, blocked domains, and attention statistics in the local Chrome profile.
+
+## Trust and privacy
+
+Scrolling Stop is local-first. It does not require an account, send browsing history to a server, or use remote analytics.
