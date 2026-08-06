@@ -4,6 +4,7 @@ import {
   advanceSettingsChallenge,
   createSettingsMiniChallenge,
   isSettingsMiniChallengeAnswer,
+  requiresSettingsChallenge,
   SETTINGS_CONFIRMATION_STEPS,
   SETTINGS_HOLD_DURATION_MS,
 } from "./src/settings-challenge.js";
@@ -448,8 +449,7 @@ function renderSettingsChallenge() {
   elements.settingsHoldButton.focus();
 }
 
-function beginSettingsChallenge() {
-  const desiredEnabled = elements.enabledToggle.checked;
+function beginSettingsChallenge(desiredEnabled) {
   elements.enabledToggle.checked = state.settings?.enabled ?? true;
   elements.enabledToggle.disabled = true;
   state.settingsChallenge = { desiredEnabled, stepIndex: 0 };
@@ -525,8 +525,30 @@ async function handleSettingsMiniSubmit(event) {
   }
 }
 
-function handleEnabledChange() {
-  beginSettingsChallenge();
+async function handleEnabledChange() {
+  const currentEnabled = state.settings?.enabled ?? true;
+  const desiredEnabled = elements.enabledToggle.checked;
+  elements.enabledToggle.checked = currentEnabled;
+
+  if (requiresSettingsChallenge(currentEnabled, desiredEnabled)) {
+    beginSettingsChallenge(desiredEnabled);
+    return;
+  }
+  if (desiredEnabled === currentEnabled) {
+    return;
+  }
+
+  elements.enabledToggle.disabled = true;
+  try {
+    state.settings = await sendMessage({ type: "setEnabled", enabled: desiredEnabled });
+    render();
+    showNotice("Blocking is protected again.");
+  } catch (error) {
+    showNotice(error.message, "error");
+  } finally {
+    elements.enabledToggle.disabled = false;
+    elements.enabledToggle.checked = state.settings?.enabled ?? currentEnabled;
+  }
 }
 
 async function handlePauseClick() {

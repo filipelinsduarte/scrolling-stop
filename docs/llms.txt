@@ -16,4 +16,4 @@
 
 ## Trust and privacy
 
-Scrolling Stop is local-first. It does not require an account, send browsing history to a server, or use remote analytics.
+The extension is local-first. It does not require an account or send browsing history to a server. The public website uses Google Analytics to measure site visits.

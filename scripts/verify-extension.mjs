@@ -131,7 +131,7 @@ try {
   await popupPage.setViewportSize({ width: 388, height: 600 });
   await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
 
-  await waitForText(popupPage, "#site-count", "3");
+  await waitForText(popupPage, "#site-count", "2");
   assert(
     await popupPage.locator("#settings-challenge").isHidden(),
     "The settings challenge was visible when the popup first opened.",
@@ -142,12 +142,12 @@ try {
     "LinkedIn was not present in the default blocked list.",
   );
   assert(
-    defaultSiteNames.includes("X (legacy)"),
-    "The legacy X domain was not present in the default blocked list.",
+    defaultSiteNames.includes("X"),
+    "X was not present in the default blocked list.",
   );
   await popupPage.waitForFunction(() => {
     const favicons = [...document.querySelectorAll("#site-list .site-favicon")];
-    return favicons.length === 3
+    return favicons.length === 2
       && favicons.every((favicon) => favicon.complete && favicon.naturalWidth > 0);
   });
   const defaultFaviconUrls = await popupPage
@@ -158,7 +158,7 @@ try {
     "The blocked-site list did not use Chrome's native favicon source.",
   );
 
-  await popupPage.locator("#enabled-toggle").click();
+  await popupPage.locator(".switch-track").click();
   await popupPage.waitForFunction(() => {
     return !document.getElementById("settings-challenge")?.hidden;
   });
@@ -169,7 +169,7 @@ try {
   await popupPage.locator("#settings-challenge-cancel").click();
   await popupPage.waitForFunction(() => document.getElementById("settings-challenge")?.hidden);
 
-  await popupPage.locator("#enabled-toggle").click();
+  await popupPage.locator(".switch-track").click();
   await popupPage.locator("#settings-hold-button").click();
   await popupPage.waitForTimeout(650);
   assert(
@@ -197,9 +197,16 @@ try {
     settingsChallengeAudit.horizontalOverflow <= 0,
     "The settings challenge has horizontal overflow.",
   );
-  await popupPage.evaluate(() => chrome.runtime.sendMessage({ type: "setEnabled", enabled: true }));
-  await popupPage.reload();
+  await popupPage.locator(".switch-track").click();
   await waitForText(popupPage, "#status-title", "Blocking is active");
+  assert(
+    await popupPage.locator("#settings-challenge").isHidden(),
+    "Turning blocking back on incorrectly opened the settings challenge.",
+  );
+  assert(
+    await popupPage.locator("#enabled-toggle").isChecked(),
+    "Turning blocking back on did not update the toggle immediately.",
+  );
 
   await popupPage.locator("#focus-edit-button").click();
   await popupPage.waitForFunction(() => {
@@ -282,7 +289,7 @@ try {
 
   await popupPage.locator("#site-input").fill("https://www.reddit.com/r/all");
   await popupPage.locator("#add-site-form button[type='submit']").click();
-  await waitForText(popupPage, "#site-count", "4");
+  await waitForText(popupPage, "#site-count", "3");
   assert(
     await popupPage.locator("text=reddit.com").count() >= 1,
     "A manually added domain was not rendered.",
@@ -296,11 +303,6 @@ try {
       && redditFavicon.naturalWidth > 0,
     );
   });
-
-  await popupPage.locator(".switch-track").click();
-  await waitForText(popupPage, "#status-title", "Blocking is off");
-  await popupPage.locator(".switch-track").click();
-  await waitForText(popupPage, "#status-title", "Blocking is active");
 
   await popupPage.locator("#pause-button").click();
   await waitForText(popupPage, "#status-title", "Taking a short break");
@@ -559,8 +561,27 @@ try {
       && !sitePauseState.data.isPaused,
     "The popup treated a LinkedIn-only break as a global pause.",
   );
-  await analyticsPage.evaluate(() => {
-    return chrome.runtime.sendMessage({ type: "resumeBlocking" });
+  await blockedPage.goto("https://www.linkedin.com/feed/", {
+    waitUntil: "domcontentloaded",
+    timeout: 15_000,
+  });
+  assert(
+    new URL(blockedPage.url()).hostname.endsWith("linkedin.com"),
+    `The approved LinkedIn break did not allow LinkedIn: ${blockedPage.url()}`,
+  );
+  await serviceWorker.evaluate(async () => {
+    await chrome.storage.local.set({ pausedUntil: Date.now() + 800 });
+  });
+  await blockedPage.waitForURL((url) => {
+    return url.protocol === "chrome-extension:"
+      && url.pathname === "/blocked.html"
+      && url.searchParams.get("domain") === "linkedin.com";
+  }, { timeout: 5_000 });
+  await waitForText(blockedPage, "#blocked-title", "You came here on autopilot.");
+  await blockedPage.waitForFunction(async () => {
+    const response = await chrome.runtime.sendMessage({ type: "getState" });
+    return response?.data?.pauseRemainingMs === 0
+      && response?.data?.analytics?.blockedByDomain?.["linkedin.com"] === 2;
   });
   await analyticsPage.reload();
   await waitForText(analyticsPage, "#status-title", "Blocking is active");
@@ -580,7 +601,7 @@ try {
   await waitForText(
     analyticsPage,
     "#analytics-launch-summary",
-    "3 attempts · 5m saved",
+    "4 attempts · 5m saved",
   );
   assert(
     await analyticsPage.locator("#analytics-view").getAttribute("aria-hidden") === "true",
@@ -592,21 +613,21 @@ try {
       && document.getElementById("analytics-view")?.getAttribute("aria-hidden") === "false";
   });
   await analyticsPage.waitForTimeout(520);
-  await waitForText(analyticsPage, "#analytics-attempts", "3");
+  await waitForText(analyticsPage, "#analytics-attempts", "4");
   await waitForText(analyticsPage, "#analytics-time-saved", "5m");
   await waitForText(analyticsPage, "#analytics-focus-returns", "1");
-  await waitForText(analyticsPage, "#analytics-return-rate", "33%");
+  await waitForText(analyticsPage, "#analytics-return-rate", "25%");
   const linkedInAnalytics = analyticsPage
     .locator(".analytics-domain-item")
     .filter({ hasText: "LinkedIn" });
   await linkedInAnalytics.locator(".analytics-domain-count").waitFor({ state: "visible" });
   assert(
-    await linkedInAnalytics.locator(".analytics-domain-count").textContent() === "2 blocks",
-    "The LinkedIn analytics row did not show two blocked attempts.",
+    await linkedInAnalytics.locator(".analytics-domain-count").textContent() === "3 blocks",
+    "The LinkedIn analytics row did not show three blocked attempts.",
   );
   assert(
-    await linkedInAnalytics.locator(".analytics-domain-chart").getAttribute("aria-valuenow") === "67",
-    "The LinkedIn attempt-share chart did not represent two of three recorded attempts.",
+    await linkedInAnalytics.locator(".analytics-domain-chart").getAttribute("aria-valuenow") === "75",
+    "The LinkedIn attempt-share chart did not represent three of four recorded attempts.",
   );
   const analyticsAudit = await auditLayout(analyticsPage, [
     ".analytics-page-intro h2",
@@ -634,7 +655,7 @@ try {
   await waitForText(
     analyticsPage,
     "#analytics-launch-summary",
-    "3 attempts · 5m saved",
+    "4 attempts · 5m saved",
   );
 
   const xBareDomainPage = await context.newPage();
@@ -758,6 +779,7 @@ try {
       breakMiniChallenge: true,
       breakMiniChallengeMobileLayout: true,
       twoMinuteBreakLimit: true,
+      inPageBreakExpiryEnforcement: true,
       siteScopedBreak: true,
       alreadyOpenTabEnforcement: true,
       analyticsByDomain: true,
@@ -768,6 +790,7 @@ try {
       analyticsHorizontalOverflow: analyticsAudit.horizontalOverflow,
       addDomain: true,
       enableToggle: true,
+      oneClickReenable: true,
       timedPause: true,
       linkedinRedirect: true,
       dynamicBlockedSiteCopy: true,

@@ -5,6 +5,7 @@ import {
   advanceSettingsChallenge,
   createSettingsMiniChallenge,
   isSettingsMiniChallengeAnswer,
+  requiresSettingsChallenge,
 } from "../src/settings-challenge.js";
 
 describe("settings challenge", () => {
@@ -26,5 +27,12 @@ describe("settings challenge", () => {
     expect(challenge.prompt).toContain("7 × 4 + 3");
     expect(isSettingsMiniChallengeAnswer(challenge, "31")).toBe(true);
     expect(isSettingsMiniChallengeAnswer(challenge, "30")).toBe(false);
+  });
+
+  it("requires confirmation only when blocking is turned off", () => {
+    expect(requiresSettingsChallenge(true, false)).toBe(true);
+    expect(requiresSettingsChallenge(false, true)).toBe(false);
+    expect(requiresSettingsChallenge(true, true)).toBe(false);
+    expect(requiresSettingsChallenge(false, false)).toBe(false);
   });
 });

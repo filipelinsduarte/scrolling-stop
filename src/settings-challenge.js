@@ -39,3 +39,7 @@ export function isSettingsMiniChallengeAnswer(challenge, input) {
   return Boolean(challenge)
     && String(input ?? "").trim() === challenge.answer;
 }
+
+export function requiresSettingsChallenge(currentEnabled, desiredEnabled) {
+  return currentEnabled === true && desiredEnabled === false;
+}
