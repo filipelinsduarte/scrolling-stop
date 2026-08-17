@@ -3,6 +3,7 @@ import {
   DEFAULT_SETTINGS,
   getBlockedDomainForUrl,
   getEffectiveSettings,
+  getNextPauseExpiry,
   normalizeDomain,
   normalizeDomainList,
   normalizeFocusGoals,
@@ -20,6 +21,7 @@ const SETTINGS_KEYS = [
   "focusGoals",
   "pausedUntil",
   "pausedDomain",
+  "pausedDomains",
   "analytics",
 ];
 const RESUME_ALARM = "resume-blocking";
@@ -30,6 +32,7 @@ function settingsAreEqual(first, second) {
   return first.enabled === second.enabled
     && first.pausedUntil === second.pausedUntil
     && first.pausedDomain === second.pausedDomain
+    && JSON.stringify(first.pausedDomains) === JSON.stringify(second.pausedDomains)
     && JSON.stringify(first.blockedDomains) === JSON.stringify(second.blockedDomains)
     && JSON.stringify(first.focusGoals) === JSON.stringify(second.focusGoals)
     && JSON.stringify(first.analytics) === JSON.stringify(second.analytics);
@@ -91,8 +94,10 @@ async function redirectOpenBlockedTabs(settings) {
       continue;
     }
 
+    // auto=1 marks a worker-initiated redirect (break expiry, newly added
+    // domain) so the blocked page does not count it as a user attempt.
     const redirectUrl = chrome.runtime.getURL(
-      `/blocked.html?domain=${encodeURIComponent(blockedDomain)}`,
+      `/blocked.html?domain=${encodeURIComponent(blockedDomain)}&auto=1`,
     );
     try {
       await chrome.tabs.update(tab.id, { url: redirectUrl });
@@ -106,24 +111,31 @@ function scheduleRuleSync() {
   return enqueueRuleSync(syncBlockingRules);
 }
 
-async function initialize() {
-  const settings = await scheduleRuleSync();
-
-  if (settings.pausedUntil > Date.now()) {
-    await chrome.alarms.create(RESUME_ALARM, { when: settings.pausedUntil });
+async function schedulePauseAlarm(settings) {
+  const nextExpiry = getNextPauseExpiry(settings);
+  if (nextExpiry > 0) {
+    await chrome.alarms.create(RESUME_ALARM, { when: nextExpiry });
   } else {
     await chrome.alarms.clear(RESUME_ALARM);
   }
 }
 
+async function initialize() {
+  const settings = await scheduleRuleSync();
+  await schedulePauseAlarm(settings);
+}
+
 async function getPublicState() {
   const settings = await readSettings();
-  const pauseRemainingMs = Math.max(0, settings.pausedUntil - Date.now());
+  const now = Date.now();
+  const pauseRemainingMs = Math.max(0, settings.pausedUntil - now);
+  const hasSitePause = Object.values(settings.pausedDomains)
+    .some((until) => until > now);
 
   return {
     ...settings,
-    isPaused: pauseRemainingMs > 0 && !settings.pausedDomain,
-    hasSitePause: pauseRemainingMs > 0 && Boolean(settings.pausedDomain),
+    isPaused: pauseRemainingMs > 0,
+    hasSitePause,
     pauseRemainingMs,
   };
 }
@@ -135,6 +147,7 @@ async function setEnabled(message) {
     enabled: Boolean(message.enabled),
     pausedUntil: 0,
     pausedDomain: null,
+    pausedDomains: {},
   });
   await chrome.alarms.clear(RESUME_ALARM);
   await scheduleRuleSync();
@@ -170,13 +183,13 @@ async function removeDomain(message) {
 async function pauseBlocking() {
   const settings = await readSettings();
   const pausedUntil = Date.now() + BREAK_DURATION_MS;
-  await writeSettings({
+  const updatedSettings = await writeSettings({
     ...settings,
     enabled: true,
     pausedUntil,
     pausedDomain: null,
   });
-  await chrome.alarms.create(RESUME_ALARM, { when: pausedUntil });
+  await schedulePauseAlarm(updatedSettings);
   await scheduleRuleSync();
   return getPublicState();
 }
@@ -192,24 +205,42 @@ async function pauseDomain(message) {
     throw new Error("That website is not in the blocked list.");
   }
 
-  const pausedUntil = Date.now() + BREAK_DURATION_MS;
-  await writeSettings({
+  // Each site keeps its own break window, so unlocking a second site does
+  // not cancel a break already running on another one.
+  const pausedDomains = {
+    ...settings.pausedDomains,
+    [domain]: Date.now() + BREAK_DURATION_MS,
+  };
+  const updatedSettings = await writeSettings({
     ...settings,
     enabled: true,
-    pausedUntil,
-    pausedDomain: domain,
+    pausedDomain: null,
+    pausedDomains,
   });
-  await chrome.alarms.create(RESUME_ALARM, { when: pausedUntil });
+  await schedulePauseAlarm(updatedSettings);
   await scheduleRuleSync();
   return getPublicState();
 }
 
 async function resumeBlocking() {
   const settings = await readSettings();
-  await writeSettings({ ...settings, pausedUntil: 0, pausedDomain: null });
+  await writeSettings({
+    ...settings,
+    pausedUntil: 0,
+    pausedDomain: null,
+    pausedDomains: {},
+  });
   await chrome.alarms.clear(RESUME_ALARM);
   await scheduleRuleSync();
   return getPublicState();
+}
+
+// Alarm handler: reading settings prunes pauses that just expired, the rule
+// sync re-blocks those sites, and the alarm is re-armed for the next expiry
+// so overlapping breaks each end at their own time.
+async function handlePauseExpiry() {
+  const settings = await scheduleRuleSync();
+  await schedulePauseAlarm(settings);
 }
 
 async function setFocusGoals(message) {
@@ -280,8 +311,13 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     return;
   }
 
-  const ruleSettingChanged = ["enabled", "blockedDomains", "pausedUntil", "pausedDomain"]
-    .some((key) => Object.hasOwn(changes, key));
+  const ruleSettingChanged = [
+    "enabled",
+    "blockedDomains",
+    "pausedUntil",
+    "pausedDomain",
+    "pausedDomains",
+  ].some((key) => Object.hasOwn(changes, key));
   if (!ruleSettingChanged) {
     return;
   }
@@ -294,7 +330,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     return;
   }
 
-  runSafely("automatic resume", resumeBlocking);
+  runSafely("automatic resume", handlePauseExpiry);
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {

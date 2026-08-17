@@ -8,7 +8,11 @@ function normalizePageGuardDomain(input) {
     return null;
   }
 
-  if (hostname === "x" || hostname === "twitter.com") {
+  if (
+    hostname === "x"
+    || hostname === "twitter.com"
+    || hostname.endsWith(".twitter.com")
+  ) {
     return "x.com";
   }
 
@@ -46,16 +50,33 @@ function getPageGuardDecision(hostname, settings, now = Date.now()) {
   }
 
   const pausedUntil = Number(settings.pausedUntil);
-  const hasActivePause = Number.isFinite(pausedUntil) && pausedUntil > now;
-  if (!hasActivePause) {
-    return { blockedDomain, reevaluateAt: 0 };
+  const hasSlotPause = Number.isFinite(pausedUntil) && pausedUntil > now;
+  const slotPausedDomain = hasSlotPause
+    ? normalizePageGuardDomain(settings.pausedDomain)
+    : null;
+
+  const globalPauseUntil = hasSlotPause && !slotPausedDomain ? pausedUntil : 0;
+
+  // Per-domain break windows (map of domain -> expiry), plus the legacy
+  // single-slot site pause written by an older worker.
+  let sitePauseUntil = 0;
+  const pausedDomains = settings.pausedDomains
+    && typeof settings.pausedDomains === "object"
+    ? settings.pausedDomains
+    : {};
+  const mappedUntil = Number(pausedDomains[blockedDomain]);
+  if (Number.isFinite(mappedUntil) && mappedUntil > now) {
+    sitePauseUntil = mappedUntil;
+  }
+  if (slotPausedDomain === blockedDomain) {
+    sitePauseUntil = Math.max(sitePauseUntil, pausedUntil);
   }
 
-  const pausedDomain = normalizePageGuardDomain(settings.pausedDomain);
-  const isGlobalPause = !pausedDomain;
-  const isCurrentDomainPaused = pausedDomain === blockedDomain;
-  if (isGlobalPause || isCurrentDomainPaused) {
-    return { blockedDomain: null, reevaluateAt: pausedUntil };
+  if (globalPauseUntil > 0 || sitePauseUntil > 0) {
+    return {
+      blockedDomain: null,
+      reevaluateAt: Math.max(globalPauseUntil, sitePauseUntil),
+    };
   }
 
   return { blockedDomain, reevaluateAt: 0 };

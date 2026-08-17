@@ -4,6 +4,7 @@ import {
   SETTINGS_HOLD_DURATION_MS,
   advanceSettingsChallenge,
   createSettingsMiniChallenge,
+  getPauseButtonAction,
   isSettingsMiniChallengeAnswer,
   requiresSettingsChallenge,
 } from "../src/settings-challenge.js";
@@ -34,5 +35,15 @@ describe("settings challenge", () => {
     expect(requiresSettingsChallenge(false, true)).toBe(false);
     expect(requiresSettingsChallenge(true, true)).toBe(false);
     expect(requiresSettingsChallenge(false, false)).toBe(false);
+  });
+
+  it("challenges starting a pause but not resuming or re-enabling", () => {
+    expect(getPauseButtonAction({ enabled: true, isPaused: false }))
+      .toBe("challengePause");
+    expect(getPauseButtonAction({ enabled: true, isPaused: true }))
+      .toBe("resume");
+    expect(getPauseButtonAction({ enabled: false, isPaused: false }))
+      .toBe("enable");
+    expect(getPauseButtonAction(null)).toBe("enable");
   });
 });

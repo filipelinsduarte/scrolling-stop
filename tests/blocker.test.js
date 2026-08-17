@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildBlockingRules,
+  getActiveBlockedDomains,
   getBlockedDomainForUrl,
   getEffectiveSettings,
+  getNextPauseExpiry,
   normalizeDomain,
   normalizeDomainList,
   normalizeFocusGoals,
@@ -81,6 +83,7 @@ describe("getEffectiveSettings", () => {
     focusGoals: [],
     pausedUntil: 0,
     pausedDomain: null,
+    pausedDomains: {},
     analytics: {
       totalBlockedAttempts: 0,
       focusReturns: 0,
@@ -106,6 +109,7 @@ describe("getEffectiveSettings", () => {
       focusGoals: [],
       pausedUntil: 0,
       pausedDomain: null,
+      pausedDomains: {},
       analytics: {
         totalBlockedAttempts: 0,
         focusReturns: 0,
@@ -114,10 +118,96 @@ describe("getEffectiveSettings", () => {
       },
     });
   });
+
+  it("migrates a legacy single-slot site pause into the pause map", () => {
+    const settings = getEffectiveSettings(
+      { pausedUntil: 121_000, pausedDomain: "linkedin.com" },
+      defaults,
+      1_000,
+    );
+
+    expect(settings.pausedUntil).toBe(0);
+    expect(settings.pausedDomain).toBeNull();
+    expect(settings.pausedDomains).toEqual({ "linkedin.com": 121_000 });
+  });
+
+  it("keeps a legacy global pause global after migration", () => {
+    const settings = getEffectiveSettings(
+      { pausedUntil: 121_000, pausedDomain: null },
+      defaults,
+      1_000,
+    );
+
+    expect(settings.pausedUntil).toBe(121_000);
+    expect(settings.pausedDomains).toEqual({});
+  });
+
+  it("prunes expired entries from the pause map and keeps active ones", () => {
+    const settings = getEffectiveSettings(
+      {
+        pausedDomains: {
+          "linkedin.com": 999,
+          "x.com": 121_000,
+          "not a domain": 121_000,
+        },
+      },
+      defaults,
+      1_000,
+    );
+
+    expect(settings.pausedDomains).toEqual({ "x.com": 121_000 });
+  });
+});
+
+describe("getActiveBlockedDomains", () => {
+  it("lets two site breaks run at the same time without cancelling each other", () => {
+    const settings = {
+      enabled: true,
+      blockedDomains: ["linkedin.com", "x.com", "reddit.com"],
+      pausedUntil: 0,
+      pausedDomain: null,
+      pausedDomains: { "linkedin.com": 121_000, "x.com": 90_000 },
+    };
+
+    expect(getActiveBlockedDomains(settings, 1_000)).toEqual(["reddit.com"]);
+    expect(getActiveBlockedDomains(settings, 90_000)).toEqual([
+      "x.com",
+      "reddit.com",
+    ]);
+    expect(getActiveBlockedDomains(settings, 121_000)).toEqual([
+      "linkedin.com",
+      "x.com",
+      "reddit.com",
+    ]);
+  });
+});
+
+describe("getNextPauseExpiry", () => {
+  it("returns the earliest expiry across site and global pauses", () => {
+    expect(
+      getNextPauseExpiry(
+        {
+          pausedUntil: 200_000,
+          pausedDomain: null,
+          pausedDomains: { "linkedin.com": 121_000, "x.com": 90_000 },
+        },
+        1_000,
+      ),
+    ).toBe(90_000);
+  });
+
+  it("returns zero when no pause is active", () => {
+    expect(
+      getNextPauseExpiry(
+        { pausedUntil: 0, pausedDomain: null, pausedDomains: {} },
+        1_000,
+      ),
+    ).toBe(0);
+  });
 });
 
 describe("buildBlockingRules", () => {
-  it("builds exact domain-anchored main-frame redirects", () => {
+  it("builds separator-terminated main-frame redirects with alias coverage", () => {
     const rules = buildBlockingRules({
       enabled: true,
       blockedDomains: ["linkedin.com", "x.com"],
@@ -134,7 +224,7 @@ describe("buildBlockingRules", () => {
           redirect: { extensionPath: "/blocked.html?domain=linkedin.com" },
         },
         condition: {
-          urlFilter: "||linkedin.com",
+          urlFilter: "||linkedin.com^",
           resourceTypes: ["main_frame"],
         },
       },
@@ -146,10 +236,37 @@ describe("buildBlockingRules", () => {
           redirect: { extensionPath: "/blocked.html?domain=x.com" },
         },
         condition: {
-          urlFilter: "||x.com",
+          urlFilter: "||x.com^",
           resourceTypes: ["main_frame"],
         },
       },
+      {
+        id: 3,
+        priority: 1,
+        action: {
+          type: "redirect",
+          redirect: { extensionPath: "/blocked.html?domain=x.com" },
+        },
+        condition: {
+          urlFilter: "||twitter.com^",
+          resourceTypes: ["main_frame"],
+        },
+      },
+    ]);
+  });
+
+  it("terminates every filter so a prefix-sharing hostname is not over-blocked", () => {
+    const rules = buildBlockingRules({
+      enabled: true,
+      blockedDomains: ["example.co"],
+      pausedUntil: 0,
+      pausedDomain: null,
+    });
+
+    // "||example.co^" matches example.co and sub.example.co/path but not
+    // example.com - without the "^" DNR would match any prefix continuation.
+    expect(rules.map((rule) => rule.condition.urlFilter)).toEqual([
+      "||example.co^",
     ]);
   });
 
@@ -182,16 +299,18 @@ describe("buildBlockingRules", () => {
     });
 
     expect(rules.map((rule) => rule.condition.urlFilter)).toEqual([
-      "||x.com",
-      "||reddit.com",
+      "||x.com^",
+      "||twitter.com^",
+      "||reddit.com^",
     ]);
     expect(rules.map((rule) => rule.action.redirect.extensionPath)).toEqual([
+      "/blocked.html?domain=x.com",
       "/blocked.html?domain=x.com",
       "/blocked.html?domain=reddit.com",
     ]);
   });
 
-  it("builds the X rule when the user entered twitter.com", () => {
+  it("covers both x.com and twitter.com when the user entered twitter.com", () => {
     const rules = buildBlockingRules({
       enabled: true,
       blockedDomains: ["twitter.com"],
@@ -199,8 +318,10 @@ describe("buildBlockingRules", () => {
       pausedDomain: null,
     });
 
-    expect(rules).toHaveLength(1);
-    expect(rules[0].condition.urlFilter).toBe("||x.com");
+    expect(rules.map((rule) => rule.condition.urlFilter)).toEqual([
+      "||x.com^",
+      "||twitter.com^",
+    ]);
     expect(rules[0].action.redirect.extensionPath).toBe(
       "/blocked.html?domain=x.com",
     );
@@ -225,6 +346,32 @@ describe("getBlockedDomainForUrl", () => {
     expect(
       getBlockedDomainForUrl("https://example.com/redirect?next=x.com", settings, 1_000),
     ).toBeNull();
+  });
+
+  it("identifies twitter.com and its subdomains as blocked X pages", () => {
+    expect(
+      getBlockedDomainForUrl("https://twitter.com/home", settings, 1_000),
+    ).toBe("x.com");
+    expect(
+      getBlockedDomainForUrl("https://mobile.twitter.com/explore", settings, 1_000),
+    ).toBe("x.com");
+  });
+
+  it("respects per-domain break windows from the pause map", () => {
+    const pausedSettings = {
+      ...settings,
+      pausedDomains: { "linkedin.com": 2_000 },
+    };
+
+    expect(
+      getBlockedDomainForUrl("https://linkedin.com/feed", pausedSettings, 1_000),
+    ).toBeNull();
+    expect(
+      getBlockedDomainForUrl("https://x.com/home", pausedSettings, 1_000),
+    ).toBe("x.com");
+    expect(
+      getBlockedDomainForUrl("https://linkedin.com/feed", pausedSettings, 2_000),
+    ).toBe("linkedin.com");
   });
 
   it("respects global and site-specific pauses", () => {

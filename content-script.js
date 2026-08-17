@@ -6,6 +6,7 @@ const GUARD_SETTING_KEYS = new Set([
   "blockedDomains",
   "pausedUntil",
   "pausedDomain",
+  "pausedDomains",
 ]);
 
 function clearGuardTimeout() {
@@ -20,6 +21,10 @@ function clearGuardTimeout() {
 function redirectToBlockedPage(blockedDomain) {
   const blockedUrl = new URL(chrome.runtime.getURL("blocked.html"));
   blockedUrl.searchParams.set("domain", blockedDomain);
+  // Page-guard redirects enforce a boundary on an already-open tab (break
+  // expiry, newly blocked domain) - they are not user attempts, so they
+  // carry the same auto marker as worker-initiated redirects.
+  blockedUrl.searchParams.set("auto", "1");
   window.location.replace(blockedUrl.toString());
 }
 

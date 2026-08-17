@@ -6,6 +6,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   focusGoals: Object.freeze([]),
   pausedUntil: 0,
   pausedDomain: null,
+  pausedDomains: Object.freeze({}),
   analytics: DEFAULT_ANALYTICS,
 });
 
@@ -16,6 +17,18 @@ const DOMAIN_ALIASES = Object.freeze({
   "x.com": "x.com",
   "twitter.com": "x.com",
 });
+
+// Hostnames that must also be covered when a canonical domain is blocked.
+// Blocking x.com has to intercept twitter.com before Twitter's own server
+// redirect, otherwise the page can flash or fully load first.
+const DOMAIN_RULE_ALIASES = Object.freeze({
+  "x.com": Object.freeze(["twitter.com"]),
+});
+
+export function expandDomainHostnames(domain) {
+  const aliases = DOMAIN_RULE_ALIASES[domain] || [];
+  return [domain, ...aliases];
+}
 
 export function normalizeDomain(input) {
   if (typeof input !== "string") {
@@ -75,6 +88,52 @@ export function normalizeDomainList(domains) {
   return normalizedDomains;
 }
 
+export function normalizePausedDomains(input, now = Date.now()) {
+  const safeInput = input && typeof input === "object" && !Array.isArray(input)
+    ? input
+    : {};
+  const pausedDomains = {};
+
+  for (const [rawDomain, rawUntil] of Object.entries(safeInput)) {
+    const domain = normalizeDomain(rawDomain);
+    const until = Number(rawUntil);
+    if (!domain || !Number.isFinite(until) || until <= now) {
+      continue;
+    }
+
+    pausedDomains[domain] = Math.max(pausedDomains[domain] || 0, until);
+  }
+
+  return pausedDomains;
+}
+
+// Combines the per-domain pause map with the legacy single pause slot
+// (pausedUntil + pausedDomain). A legacy site pause becomes a map entry so
+// storage written by an older worker keeps its active break.
+function getActivePauses(settings, now) {
+  const domainPauses = normalizePausedDomains(settings.pausedDomains, now);
+
+  const storedPause = Number(settings.pausedUntil);
+  const activeStoredPause = Number.isFinite(storedPause) && storedPause > now
+    ? storedPause
+    : 0;
+  const legacyPausedDomain = activeStoredPause > 0
+    ? normalizeDomain(settings.pausedDomain)
+    : null;
+
+  let globalPauseUntil = 0;
+  if (legacyPausedDomain) {
+    domainPauses[legacyPausedDomain] = Math.max(
+      domainPauses[legacyPausedDomain] || 0,
+      activeStoredPause,
+    );
+  } else {
+    globalPauseUntil = activeStoredPause;
+  }
+
+  return { globalPauseUntil, domainPauses };
+}
+
 export function normalizeFocusGoals(input) {
   const candidates = typeof input === "string" ? input.split(/\r?\n/) : input;
   if (!Array.isArray(candidates)) {
@@ -127,59 +186,76 @@ export function getEffectiveSettings(rawSettings, defaults, now = Date.now()) {
     : defaults.focusGoals;
   const focusGoals = normalizeFocusGoals(storedGoals);
 
-  const storedPause = Number(safeRawSettings.pausedUntil);
-  const pausedUntil = Number.isFinite(storedPause) && storedPause > now
-    ? storedPause
-    : 0;
-  const pausedDomain = pausedUntil > 0
-    ? normalizeDomain(safeRawSettings.pausedDomain)
-    : null;
+  const { globalPauseUntil, domainPauses } = getActivePauses(
+    safeRawSettings,
+    now,
+  );
   const analytics = normalizeAnalytics(safeRawSettings.analytics);
 
   return {
     enabled,
     blockedDomains,
     focusGoals,
-    pausedUntil,
-    pausedDomain,
+    pausedUntil: globalPauseUntil,
+    // The legacy single-domain slot is always cleared after migration into
+    // pausedDomains, so a later global pause cannot be misread as a site pause.
+    pausedDomain: null,
+    pausedDomains: domainPauses,
     analytics,
   };
 }
 
 export function buildBlockingRules(settings, now = Date.now()) {
   const activeDomains = getActiveBlockedDomains(settings, now);
+  const rules = [];
 
-  return activeDomains.map((domain, index) => ({
-    id: index + 1,
-    priority: 1,
-    action: {
-      type: "redirect",
-      redirect: {
-        extensionPath: `/blocked.html?domain=${encodeURIComponent(domain)}`,
-      },
-    },
-    condition: {
-      // Match the bare hostname as well as paths such as /home. A filter
-      // ending in a slash can miss an initial navigation serialized as
-      // https://example.com without an explicit path.
-      urlFilter: `||${domain}`,
-      resourceTypes: ["main_frame"],
-    },
-  }));
+  for (const domain of activeDomains) {
+    for (const hostname of expandDomainHostnames(domain)) {
+      rules.push({
+        id: rules.length + 1,
+        priority: 1,
+        action: {
+          type: "redirect",
+          redirect: {
+            extensionPath: `/blocked.html?domain=${encodeURIComponent(domain)}`,
+          },
+        },
+        condition: {
+          // "^" matches a separator or the end of the URL, so this covers
+          // https://example.com, https://example.com/ and subdomain paths
+          // without also matching a longer hostname such as example.company.
+          urlFilter: `||${hostname}^`,
+          resourceTypes: ["main_frame"],
+        },
+      });
+    }
+  }
+
+  return rules;
 }
 
 export function getActiveBlockedDomains(settings, now = Date.now()) {
-  const hasActivePause = settings.pausedUntil > now;
-  const pausedDomain = hasActivePause
-    ? normalizeDomain(settings.pausedDomain)
-    : null;
-  const hasGlobalPause = hasActivePause && !pausedDomain;
-  if (!settings.enabled || hasGlobalPause) {
+  const { globalPauseUntil, domainPauses } = getActivePauses(settings, now);
+  if (!settings.enabled || globalPauseUntil > 0) {
     return [];
   }
 
   return normalizeDomainList(settings.blockedDomains)
-    .filter((domain) => domain !== pausedDomain);
+    .filter((domain) => !domainPauses[domain]);
+}
+
+export function getNextPauseExpiry(settings, now = Date.now()) {
+  const { globalPauseUntil, domainPauses } = getActivePauses(settings, now);
+  const expiries = Object.values(domainPauses);
+  if (globalPauseUntil > 0) {
+    expiries.push(globalPauseUntil);
+  }
+
+  if (expiries.length === 0) {
+    return 0;
+  }
+
+  return Math.min(...expiries);
 }
 
 export function getBlockedDomainForUrl(url, settings, now = Date.now()) {
@@ -190,7 +266,10 @@ export function getBlockedDomainForUrl(url, settings, now = Date.now()) {
 
   const matchingDomains = getActiveBlockedDomains(settings, now)
     .filter((domain) => {
-      return currentDomain === domain || currentDomain.endsWith(`.${domain}`);
+      return expandDomainHostnames(domain).some((hostname) => {
+        return currentDomain === hostname
+          || currentDomain.endsWith(`.${hostname}`);
+      });
     })
     .sort((first, second) => second.length - first.length);
 

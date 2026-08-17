@@ -23,13 +23,18 @@ jobs:
         run: npm ci
       - name: Run unit tests
         run: npm test
-      - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=high
+      - name: Audit dependencies
+        # This project only has devDependencies, so the audit must include
+        # them - with --omit=dev it would scan an empty tree and always pass.
+        run: npm audit --audit-level=high
       - name: Check JavaScript syntax
         run: |
           node --check popup.js
           node --check blocked.js
+          node --check content-script.js
           node --check service-worker.js
+          for file in src/*.js; do node --check "$file"; done
           node --check scripts/verify-extension.mjs
           node --check scripts/verify-landing.mjs
+          node --check scripts/generate-social-card.mjs
           node --check docs/site.js

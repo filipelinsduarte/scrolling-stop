@@ -3,6 +3,7 @@ import { calculatePercentage, formatSavedTime } from "./src/analytics.js";
 import {
   advanceSettingsChallenge,
   createSettingsMiniChallenge,
+  getPauseButtonAction,
   isSettingsMiniChallengeAnswer,
   requiresSettingsChallenge,
   SETTINGS_CONFIRMATION_STEPS,
@@ -431,9 +432,14 @@ function renderSettingsChallenge() {
     const miniChallenge = createSettingsMiniChallenge();
     elements.settingsChallengeStep.textContent = "Final check";
     elements.settingsChallengeTitle.textContent = "One last intentional choice.";
-    elements.settingsChallengeMessage.textContent = challenge.desiredEnabled
-      ? "Solve this quick check before restoring the guardrail."
-      : "Solve this quick check before lowering the guardrail.";
+    if (challenge.mode === "pause") {
+      elements.settingsChallengeMessage.textContent =
+        "Solve this quick check before starting your 2-minute break.";
+    } else {
+      elements.settingsChallengeMessage.textContent = challenge.desiredEnabled
+        ? "Solve this quick check before restoring the guardrail."
+        : "Solve this quick check before lowering the guardrail.";
+    }
     elements.settingsMiniPrompt.textContent = miniChallenge.prompt;
     elements.settingsMiniAnswer.value = "";
     elements.settingsMiniFeedback.textContent = "";
@@ -449,10 +455,10 @@ function renderSettingsChallenge() {
   elements.settingsHoldButton.focus();
 }
 
-function beginSettingsChallenge(desiredEnabled) {
+function beginSettingsChallenge(mode, desiredEnabled) {
   elements.enabledToggle.checked = state.settings?.enabled ?? true;
   elements.enabledToggle.disabled = true;
-  state.settingsChallenge = { desiredEnabled, stepIndex: 0 };
+  state.settingsChallenge = { mode, desiredEnabled, stepIndex: 0 };
   renderSettingsChallenge();
 }
 
@@ -513,6 +519,14 @@ async function handleSettingsMiniSubmit(event) {
   }
 
   try {
+    if (state.settingsChallenge.mode === "pause") {
+      state.settings = await sendMessage({ type: "pauseBlocking" });
+      closeSettingsChallenge();
+      render();
+      showNotice("Your 2-minute break has started.");
+      return;
+    }
+
     state.settings = await sendMessage({
       type: "setEnabled",
       enabled: state.settingsChallenge.desiredEnabled,
@@ -531,7 +545,7 @@ async function handleEnabledChange() {
   elements.enabledToggle.checked = currentEnabled;
 
   if (requiresSettingsChallenge(currentEnabled, desiredEnabled)) {
-    beginSettingsChallenge(desiredEnabled);
+    beginSettingsChallenge("disable", desiredEnabled);
     return;
   }
   if (desiredEnabled === currentEnabled) {
@@ -552,13 +566,18 @@ async function handleEnabledChange() {
 }
 
 async function handlePauseClick() {
+  const action = getPauseButtonAction(state.settings);
+
+  if (action === "challengePause") {
+    beginSettingsChallenge("pause", true);
+    return;
+  }
+
   try {
-    if (!state.settings.enabled) {
+    if (action === "enable") {
       state.settings = await sendMessage({ type: "setEnabled", enabled: true });
-    } else if (state.settings.isPaused) {
-      state.settings = await sendMessage({ type: "resumeBlocking" });
     } else {
-      state.settings = await sendMessage({ type: "pauseBlocking" });
+      state.settings = await sendMessage({ type: "resumeBlocking" });
     }
     render();
   } catch (error) {

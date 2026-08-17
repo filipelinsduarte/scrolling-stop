@@ -1,11 +1,5 @@
-function redirectGitHubPagesHost() {
-  if (window.location.hostname !== "filipelinsduarte.github.io") {
-    return true;
-  }
-
-  window.location.replace("https://github.com/filipelinsduarte/scrolling-stop");
-  return false;
-}
+// Mirror-host redirects live in an inline <head> script in index.html so
+// they run before the analytics snippet records a page_view.
 
 function runBootStep(label, task) {
   try {
@@ -58,9 +52,6 @@ function initializeReveals() {
 }
 
 function boot() {
-  if (!redirectGitHubPagesHost()) {
-    return;
-  }
   runBootStep("navigation setup", initializeNavigation);
   runBootStep("reveal setup", initializeReveals);
 }

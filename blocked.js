@@ -46,6 +46,17 @@ function goBack() {
   window.history.back();
 }
 
+function openUnlockedSite() {
+  // The blocking redirect replaced the original navigation, so the blocked
+  // site is not in this tab's history. Navigate to it directly instead of
+  // relying on history.back(), which can strand the user on this page.
+  if (blockedDomain) {
+    window.location.replace(`https://${blockedDomain}/`);
+    return;
+  }
+  goBack();
+}
+
 async function returnToFocus(notice) {
   try {
     await sendMessage({ type: "recordFocusReturn" });
@@ -98,6 +109,12 @@ async function recordBlockedPageArrival() {
   const searchParams = new URLSearchParams(window.location.search);
   blockedDomain = normalizeDomain(searchParams.get("domain") || "");
   if (!blockedDomain) {
+    return;
+  }
+
+  // auto=1 means the worker redirected an already-open tab (break expiry,
+  // newly added domain) - the user made no attempt, so record nothing.
+  if (searchParams.get("auto") === "1") {
     return;
   }
 
@@ -275,7 +292,7 @@ async function pauseBlocking(pauseButton, notice) {
   try {
     await sendMessage({ type: "pauseDomain", domain: blockedDomain });
     showNotice(notice, `Blocking is paused for ${BREAK_DURATION_MINUTES} minutes.`);
-    window.setTimeout(goBack, 350);
+    window.setTimeout(openUnlockedSite, 350);
   } catch (error) {
     const errorMessage = error.message === "Unknown extension action."
       ? "Chrome is still running an older Scroll Stop worker. Reload Scroll Stop once in chrome://extensions, then try again."

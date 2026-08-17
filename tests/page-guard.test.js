@@ -70,4 +70,50 @@ describe("page guard", () => {
 
     expect(decision).toEqual({ blockedDomain: null, reevaluateAt: 0 });
   });
+
+  it("treats twitter.com subdomains as the blocked x.com service", () => {
+    const decision = globalThis.ScrollStopPageGuard.getPageGuardDecision(
+      "mobile.twitter.com",
+      createSettings(),
+      1_000,
+    );
+
+    expect(decision).toEqual({ blockedDomain: "x.com", reevaluateAt: 0 });
+  });
+
+  it("honours per-domain break windows from the pause map", () => {
+    const settings = createSettings({
+      pausedDomains: { "linkedin.com": 121_000, "x.com": 90_000 },
+    });
+
+    expect(
+      globalThis.ScrollStopPageGuard.getPageGuardDecision(
+        "www.linkedin.com",
+        settings,
+        1_000,
+      ),
+    ).toEqual({ blockedDomain: null, reevaluateAt: 121_000 });
+
+    expect(
+      globalThis.ScrollStopPageGuard.getPageGuardDecision(
+        "x.com",
+        settings,
+        90_000,
+      ),
+    ).toEqual({ blockedDomain: "x.com", reevaluateAt: 0 });
+  });
+
+  it("keeps a second site's break running while another break is active", () => {
+    const settings = createSettings({
+      pausedDomains: { "linkedin.com": 121_000, "x.com": 90_000 },
+    });
+
+    expect(
+      globalThis.ScrollStopPageGuard.getPageGuardDecision(
+        "x.com",
+        settings,
+        1_000,
+      ),
+    ).toEqual({ blockedDomain: null, reevaluateAt: 90_000 });
+  });
 });

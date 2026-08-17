@@ -43,3 +43,18 @@ export function isSettingsMiniChallengeAnswer(challenge, input) {
 export function requiresSettingsChallenge(currentEnabled, desiredEnabled) {
   return currentEnabled === true && desiredEnabled === false;
 }
+
+// The popup pause button lowers the guardrail for every blocked site at
+// once, so starting a pause earns the same challenge as disabling blocking.
+// Turning blocking back on and ending a pause early stay friction-free.
+export function getPauseButtonAction(settings) {
+  if (!settings || settings.enabled !== true) {
+    return "enable";
+  }
+
+  if (settings.isPaused === true) {
+    return "resume";
+  }
+
+  return "challengePause";
+}

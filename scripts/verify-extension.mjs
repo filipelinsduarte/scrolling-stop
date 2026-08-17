@@ -22,9 +22,16 @@ function collectErrors(page, pageName) {
     browserErrors.push(`${pageName} page error: ${error.message}`);
   });
   page.on("console", (message) => {
-    if (message.type() === "error") {
-      browserErrors.push(`${pageName} console error: ${message.text()}`);
+    if (message.type() !== "error") {
+      return;
     }
+    // Real external sites (the approved break opens the unlocked site) can
+    // fail to load their own subresources in the test sandbox - that is
+    // network noise, not an extension error.
+    if (message.text().includes("net::ERR_")) {
+      return;
+    }
+    browserErrors.push(`${pageName} console error: ${message.text()}`);
   });
 }
 
@@ -304,7 +311,19 @@ try {
     );
   });
 
+  // Starting a pause now requires the same hold-and-solve challenge as
+  // disabling blocking; resuming stays one click.
   await popupPage.locator("#pause-button").click();
+  await popupPage.waitForFunction(
+    () => !document.getElementById("settings-challenge")?.hidden,
+  );
+  await holdButton(popupPage, "#settings-hold-button", 5_150);
+  await holdButton(popupPage, "#settings-hold-button", 5_150);
+  await popupPage.waitForFunction(
+    () => !document.getElementById("settings-mini-form")?.hidden,
+  );
+  await popupPage.locator("#settings-mini-answer").fill("31");
+  await popupPage.locator("#settings-mini-form").press("Enter");
   await waitForText(popupPage, "#status-title", "Taking a short break");
   await waitForText(popupPage, "#status-detail", "2 min left");
   await popupPage.locator("#pause-button").click();
@@ -346,6 +365,9 @@ try {
   );
   await waitForText(blockedPage, "#blocked-title", "You came here on autopilot.");
   await waitForText(blockedPage, "#focus-reminder-title", "You said you would:");
+  await blockedPage.waitForFunction(() => {
+    return document.querySelectorAll("#focus-goal-list li").length >= 2;
+  });
   const blockedGoals = await blockedPage.locator("#focus-goal-list li").allTextContents();
   assert(
     blockedGoals.includes("Finish the client proposal"),
@@ -499,22 +521,30 @@ try {
   const storedPause = await serviceWorker.evaluate(async () => {
     const settings = await chrome.storage.local.get([
       "pausedUntil",
-      "pausedDomain",
+      "pausedDomains",
       "analytics",
     ]);
+    const pausedDomains = settings.pausedDomains || {};
     return {
-      pauseRemainingMs: settings.pausedUntil - Date.now(),
-      pausedDomain: settings.pausedDomain,
+      globalPauseRemainingMs: (settings.pausedUntil || 0) - Date.now(),
+      linkedInPauseRemainingMs: (pausedDomains["linkedin.com"] || 0) - Date.now(),
+      pausedDomainNames: Object.keys(pausedDomains),
       analytics: settings.analytics,
     };
   });
   assert(
-    storedPause.pauseRemainingMs > 0 && storedPause.pauseRemainingMs <= 120_000,
-    `The approved break was not limited to 2 minutes: ${storedPause.pauseRemainingMs}ms remained.`,
+    storedPause.linkedInPauseRemainingMs > 0
+      && storedPause.linkedInPauseRemainingMs <= 120_000,
+    `The approved break was not limited to 2 minutes: ${storedPause.linkedInPauseRemainingMs}ms remained.`,
   );
   assert(
-    storedPause.pausedDomain === "linkedin.com",
-    `The LinkedIn break was not site-specific: ${storedPause.pausedDomain}`,
+    storedPause.globalPauseRemainingMs <= 0,
+    "A site break must not start a global pause.",
+  );
+  assert(
+    storedPause.pausedDomainNames.length === 1
+      && storedPause.pausedDomainNames[0] === "linkedin.com",
+    `The LinkedIn break was not site-specific: ${storedPause.pausedDomainNames.join(", ")}`,
   );
   assert(
     storedPause.analytics.totalBlockedAttempts === 1
@@ -557,20 +587,24 @@ try {
   assert(
     sitePauseState.ok
       && sitePauseState.data.hasSitePause
-      && sitePauseState.data.pausedDomain === "linkedin.com"
+      && (sitePauseState.data.pausedDomains?.["linkedin.com"] || 0) > Date.now()
       && !sitePauseState.data.isPaused,
     "The popup treated a LinkedIn-only break as a global pause.",
   );
-  await blockedPage.goto("https://www.linkedin.com/feed/", {
-    waitUntil: "domcontentloaded",
-    timeout: 15_000,
-  });
+  // After the approved challenge the blocked page opens the unlocked site
+  // itself (it never relies on history.back), so wait for that navigation
+  // instead of issuing a competing goto.
+  await blockedPage.waitForURL((url) => {
+    return url.hostname.endsWith("linkedin.com");
+  }, { timeout: 15_000 });
   assert(
     new URL(blockedPage.url()).hostname.endsWith("linkedin.com"),
     `The approved LinkedIn break did not allow LinkedIn: ${blockedPage.url()}`,
   );
   await serviceWorker.evaluate(async () => {
-    await chrome.storage.local.set({ pausedUntil: Date.now() + 800 });
+    await chrome.storage.local.set({
+      pausedDomains: { "linkedin.com": Date.now() + 800 },
+    });
   });
   await blockedPage.waitForURL((url) => {
     return url.protocol === "chrome-extension:"
@@ -580,8 +614,10 @@ try {
   await waitForText(blockedPage, "#blocked-title", "You came here on autopilot.");
   await blockedPage.waitForFunction(async () => {
     const response = await chrome.runtime.sendMessage({ type: "getState" });
+    // The boundary redirect is automatic enforcement, not a user attempt,
+    // so the LinkedIn count must stay at 1.
     return response?.data?.pauseRemainingMs === 0
-      && response?.data?.analytics?.blockedByDomain?.["linkedin.com"] === 2;
+      && response?.data?.analytics?.blockedByDomain?.["linkedin.com"] === 1;
   });
   await analyticsPage.reload();
   await waitForText(analyticsPage, "#status-title", "Blocking is active");
@@ -595,13 +631,18 @@ try {
   await waitForText(returnPage, "#blocked-title", "You came here on autopilot.");
   await waitForText(returnPage, "#focus-reminder-title", "You said you would:");
   await returnPage.locator("#go-back-button").click();
-  await returnPage.waitForTimeout(300);
+  // Poll from the extension popup page: the return page navigates away
+  // after the click, which drops its chrome.runtime access.
+  await analyticsPage.waitForFunction(async () => {
+    const response = await chrome.runtime.sendMessage({ type: "getState" });
+    return response?.data?.analytics?.focusReturns === 1;
+  });
 
   await analyticsPage.reload();
   await waitForText(
     analyticsPage,
     "#analytics-launch-summary",
-    "4 attempts · 5m saved",
+    "3 attempts · 5m saved",
   );
   assert(
     await analyticsPage.locator("#analytics-view").getAttribute("aria-hidden") === "true",
@@ -613,21 +654,21 @@ try {
       && document.getElementById("analytics-view")?.getAttribute("aria-hidden") === "false";
   });
   await analyticsPage.waitForTimeout(520);
-  await waitForText(analyticsPage, "#analytics-attempts", "4");
+  await waitForText(analyticsPage, "#analytics-attempts", "3");
   await waitForText(analyticsPage, "#analytics-time-saved", "5m");
   await waitForText(analyticsPage, "#analytics-focus-returns", "1");
-  await waitForText(analyticsPage, "#analytics-return-rate", "25%");
+  await waitForText(analyticsPage, "#analytics-return-rate", "33%");
   const linkedInAnalytics = analyticsPage
     .locator(".analytics-domain-item")
     .filter({ hasText: "LinkedIn" });
   await linkedInAnalytics.locator(".analytics-domain-count").waitFor({ state: "visible" });
   assert(
-    await linkedInAnalytics.locator(".analytics-domain-count").textContent() === "3 blocks",
-    "The LinkedIn analytics row did not show three blocked attempts.",
+    await linkedInAnalytics.locator(".analytics-domain-count").textContent() === "2 blocks",
+    "The LinkedIn analytics row did not show two blocked attempts.",
   );
   assert(
-    await linkedInAnalytics.locator(".analytics-domain-chart").getAttribute("aria-valuenow") === "75",
-    "The LinkedIn attempt-share chart did not represent three of four recorded attempts.",
+    await linkedInAnalytics.locator(".analytics-domain-chart").getAttribute("aria-valuenow") === "67",
+    "The LinkedIn attempt-share chart did not represent two of three recorded attempts.",
   );
   const analyticsAudit = await auditLayout(analyticsPage, [
     ".analytics-page-intro h2",
@@ -655,7 +696,7 @@ try {
   await waitForText(
     analyticsPage,
     "#analytics-launch-summary",
-    "4 attempts · 5m saved",
+    "3 attempts · 5m saved",
   );
 
   const xBareDomainPage = await context.newPage();

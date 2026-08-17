@@ -16,15 +16,35 @@
     <meta property="og:title" content="Scrolling Stop | Stop the scroll. Return to focus.">
     <meta property="og:description" content="An open-source Chrome extension that blocks distracting sites and brings your focus back when attention drifts.">
     <meta property="og:url" content="https://scrollingstop.com/">
-    <meta property="og:image" content="https://scrollingstop.com/icon.png">
+    <meta property="og:image" content="https://scrollingstop.com/social-card.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Scrolling Stop: stop the scroll, return to focus. Free open-source Chrome extension.">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Scrolling Stop | Stop the scroll. Return to focus.">
     <meta name="twitter:description" content="Block distracting sites, remember what matters, and make the next detour intentional.">
-    <meta name="twitter:image" content="https://scrollingstop.com/icon.png">
+    <meta name="twitter:image" content="https://scrollingstop.com/social-card.png">
     <title>Scrolling Stop | Stop the scroll. Return to focus.</title>
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="stylesheet" href="site.css">
     <script>document.documentElement.className = "js";</script>
+    <script>
+      // Mirror-host redirects run before analytics so no page_view is
+      // recorded on a non-canonical hostname. The github.io mirror goes to
+      // the repository (its intended destination); the stable Cloudflare
+      // Pages hostname goes to the canonical site. Hashed preview
+      // deployments (*.scrolling-stop.pages.dev) stay reachable for testing.
+      (function () {
+        var host = window.location.hostname;
+        if (host === "filipelinsduarte.github.io") {
+          window.location.replace("https://github.com/filipelinsduarte/scrolling-stop");
+        } else if (host === "scrolling-stop.pages.dev") {
+          window.location.replace(
+            "https://scrollingstop.com" + window.location.pathname + window.location.search,
+          );
+        }
+      })();
+    </script>
     <!-- Google Analytics 4 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-31C8PKE92Z"></script>
     <script>
@@ -60,11 +80,16 @@
             "url": "https://scrollingstop.com/",
             "applicationCategory": "BrowserApplication",
             "operatingSystem": "Chrome",
-            "softwareVersion": "1.5.4",
+            "softwareVersion": "1.5.5",
             "description": "Block distracting websites in Chrome and bring your focus goals back when attention drifts.",
             "isAccessibleForFree": true,
-            "license": "https://opensource.org/licenses/MIT",
-            "downloadUrl": "https://scrollingstop.com/downloads/scrolling-stop-extension-v1.5.4.zip",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "license": "https://opensource.org/license/mit",
+            "downloadUrl": "https://scrollingstop.com/downloads/scrolling-stop-extension-v1.5.5.zip",
             "codeRepository": "https://github.com/filipelinsduarte/scrolling-stop"
           }
         ]
@@ -105,7 +130,7 @@
           </a>
           <a
             class="button button-small button-blue nav-download"
-            href="downloads/scrolling-stop-extension-v1.5.4.zip"
+            href="downloads/scrolling-stop-extension-v1.5.5.zip"
             download
           >
             <svg class="chrome-mark" viewBox="0 0 24 24" aria-hidden="true">
@@ -135,7 +160,7 @@
             <div class="hero-actions">
               <a
                 class="button button-blue button-large"
-                href="downloads/scrolling-stop-extension-v1.5.4.zip"
+                href="downloads/scrolling-stop-extension-v1.5.5.zip"
                 download
               >
                 <svg class="chrome-mark" viewBox="0 0 24 24" aria-hidden="true">
@@ -387,7 +412,7 @@
           <div class="hero-actions">
             <a
               class="button button-blue button-large"
-              href="downloads/scrolling-stop-extension-v1.5.4.zip"
+              href="downloads/scrolling-stop-extension-v1.5.5.zip"
               download
             >
               <svg class="chrome-mark" viewBox="0 0 24 24" aria-hidden="true">
@@ -411,7 +436,7 @@
               Open-source repo
             </a>
           </div>
-          <p class="final-note">Version 1.5.4 · Chrome 120+ · MIT licensed</p>
+          <p class="final-note">Version 1.5.5 · Chrome 120+ · MIT licensed</p>
         </div>
       </section>
     </main>
