@@ -5,6 +5,28 @@ images with `npm run store:assets` and the upload with `npm run package`.
 
 ---
 
+## Account tab
+
+**Publisher**: individual account, not an organization.
+
+| Field | Value |
+| --- | --- |
+| Publisher display name | `Filipe Duarte` |
+| Contact email | `filipe@aipeekaboo.com` |
+| Publisher website | `https://scrollingstop.com` |
+
+The contact email has to be verified before the item can be submitted, so
+verify it first. Google shows the publisher display name on the public
+listing, so it is a real name rather than a handle.
+
+**Trader status** (required, EU Digital Services Act): declare **non-trader**.
+Scrolling Stop is free, has no payments, no subscription and no commercial
+offering attached to it. Declaring trader would require publishing a full
+business address and phone number on the listing. If the extension ever gains
+a paid tier, this has to be revisited.
+
+---
+
 ## Store listing tab
 
 **Name** (45 characters max)
