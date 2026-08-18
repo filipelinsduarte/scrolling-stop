@@ -165,7 +165,7 @@ try {
     "The blocked-site list did not use Chrome's native favicon source.",
   );
 
-  await popupPage.locator(".switch-track").click();
+  await popupPage.locator("#enabled-toggle + .switch-track").click();
   await popupPage.waitForFunction(() => {
     return !document.getElementById("settings-challenge")?.hidden;
   });
@@ -176,7 +176,7 @@ try {
   await popupPage.locator("#settings-challenge-cancel").click();
   await popupPage.waitForFunction(() => document.getElementById("settings-challenge")?.hidden);
 
-  await popupPage.locator(".switch-track").click();
+  await popupPage.locator("#enabled-toggle + .switch-track").click();
   await popupPage.locator("#settings-hold-button").click();
   await popupPage.waitForTimeout(650);
   assert(
@@ -204,7 +204,7 @@ try {
     settingsChallengeAudit.horizontalOverflow <= 0,
     "The settings challenge has horizontal overflow.",
   );
-  await popupPage.locator(".switch-track").click();
+  await popupPage.locator("#enabled-toggle + .switch-track").click();
   await waitForText(popupPage, "#status-title", "Blocking is active");
   assert(
     await popupPage.locator("#settings-challenge").isHidden(),
@@ -805,6 +805,33 @@ try {
 
   assert(browserErrors.length === 0, browserErrors.join("\n"));
 
+  // Usage-stats opt-out: a single click, no challenge, and the anonymous id
+  // is actually discarded rather than kept dormant in storage.
+  assert(
+    await popupPage.locator("#telemetry-toggle").isChecked(),
+    "Anonymous usage stats did not default to on.",
+  );
+  await popupPage.locator("#telemetry-toggle + .switch-track").click();
+  await popupPage.waitForFunction(
+    () => document.getElementById("telemetry-toggle")?.checked === false,
+  );
+  assert(
+    await popupPage.locator("#settings-challenge").isHidden(),
+    "Turning usage stats off wrongly triggered the blocking challenge.",
+  );
+  const telemetryAfterOptOut = await popupPage.evaluate(
+    async () => (await chrome.storage.local.get("telemetry")).telemetry,
+  );
+  assert(
+    telemetryAfterOptOut?.enabled === false && telemetryAfterOptOut?.clientId === "",
+    "Opting out did not delete the anonymous identifier.",
+  );
+
+  await popupPage.locator("#telemetry-toggle + .switch-track").click();
+  await popupPage.waitForFunction(
+    () => document.getElementById("telemetry-toggle")?.checked === true,
+  );
+
   console.log(JSON.stringify({
     extensionId,
     checks: {
@@ -829,6 +856,9 @@ try {
       analyticsPageNavigation: true,
       analyticsBackNavigation: true,
       analyticsHorizontalOverflow: analyticsAudit.horizontalOverflow,
+      telemetryDefaultsOn: true,
+      telemetryOptOutIsOneClick: true,
+      telemetryOptOutClearsClientId: true,
       addDomain: true,
       enableToggle: true,
       oneClickReenable: true,

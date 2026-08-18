@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /uninstalled
 
 Sitemap: https://scrollingstop.com/sitemap.xml

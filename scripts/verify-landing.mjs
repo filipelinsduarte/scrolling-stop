@@ -1,4 +1,4 @@
-import { access, mkdir } from "node:fs/promises";
+import { access, mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -9,12 +9,13 @@ const projectDirectory = path.resolve(
   "..",
 );
 const landingPagePath = path.join(projectDirectory, "docs", "index.html");
-const downloadPath = path.join(
-  projectDirectory,
-  "docs",
-  "downloads",
-  "scrolling-stop-extension-v1.5.5.zip",
+// Read from the manifest rather than hardcoding, so a version bump cannot
+// leave this check pointing at a package that no longer exists.
+const { version } = JSON.parse(
+  await readFile(path.join(projectDirectory, "manifest.json"), "utf8"),
 );
+const downloadFileName = `scrolling-stop-extension-v${version}.zip`;
+const downloadPath = path.join(projectDirectory, "docs", "downloads", downloadFileName);
 const artifactDirectory = path.join(projectDirectory, "artifacts");
 
 function assert(condition, message) {
@@ -202,7 +203,7 @@ try {
   );
   assert(
     await page.locator("a[download]").first().getAttribute("href")
-      === "downloads/scrolling-stop-extension-v1.5.5.zip",
+      === `downloads/${downloadFileName}`,
     "The download CTA does not point to the packaged Chrome extension.",
   );
   assert(

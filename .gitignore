@@ -16,3 +16,9 @@ images/icon-48.png
 images/icon-128.png
 styles/blocked 2.css
 styles/popup 2.css
+
+# Cloudflare Pages local secrets
+.dev.vars
+
+# Wrangler local state
+.wrangler/

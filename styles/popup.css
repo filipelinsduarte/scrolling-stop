@@ -1388,3 +1388,36 @@ h2 {
   box-shadow: 0 2px 0 var(--blue-dark);
   transform: translateY(2px) scale(0.98);
 }
+
+.privacy-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.privacy-copy {
+  min-width: 0;
+}
+
+.privacy-copy h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-round);
+  font-size: 12px;
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+.privacy-copy p {
+  margin: 2px 0 0;
+  color: var(--ink-faint);
+  font-size: 11px;
+  line-height: 1.4;
+  text-wrap: pretty;
+}

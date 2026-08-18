@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="images/icon-blue-v2-128.png" width="96" height="96" alt="Scroll Stop blue pause icon">
+  <img src="images/icon-blue-v2-128.png" width="96" height="96" alt="Scrolling Stop blue pause icon">
 </p>
 
-# Scroll Stop
+# Scrolling Stop
 
-Scroll Stop is an open-source Chrome extension that interrupts distracting websites before the scroll starts. It brings your chosen focus goals back into view, adds two deliberate holds and a mini challenge before a short break, and keeps a private attention report on your device.
+Scrolling Stop is an open-source Chrome extension that interrupts distracting websites before the scroll starts. It brings your chosen focus goals back into view, adds two deliberate holds and a mini challenge before a short break, and keeps a private attention report on your device.
 
 LinkedIn, X, and the legacy Twitter domain are blocked by default. Add or remove any public website from the popup.
 
@@ -30,9 +30,9 @@ LinkedIn, X, and the legacy Twitter domain are blocked by default. Add or remove
     <td align="center"><strong>Attention Report</strong></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/main-popup.png" alt="Scroll Stop main Chrome popup"></td>
-    <td><img src="docs/screenshots/focus-plan.png" alt="Scroll Stop Focus Plan objective editor"></td>
-    <td><img src="docs/screenshots/attention-report.png" alt="Scroll Stop Attention Report analytics"></td>
+    <td><img src="docs/screenshots/main-popup.png" alt="Scrolling Stop main Chrome popup"></td>
+    <td><img src="docs/screenshots/focus-plan.png" alt="Scrolling Stop Focus Plan objective editor"></td>
+    <td><img src="docs/screenshots/attention-report.png" alt="Scrolling Stop Attention Report analytics"></td>
   </tr>
 </table>
 
@@ -48,25 +48,25 @@ No build step is required.
 4. Turn on **Developer mode** in the top-right corner.
 5. Click **Load unpacked**.
 6. Select the folder containing `manifest.json`.
-7. Pin Scroll Stop from Chrome's Extensions menu.
+7. Pin Scrolling Stop from Chrome's Extensions menu.
 
-If Chrome still shows an older orange icon, click **Reload** on the Scroll Stop card in `chrome://extensions`. If it remains cached, remove the old unpacked copy and load this folder again. Version 1.4.1 and newer use new blue icon filenames specifically to clear the old cache.
+If Chrome still shows an older orange icon, click **Reload** on the Scrolling Stop card in `chrome://extensions`. If it remains cached, remove the old unpacked copy and load this folder again. Version 1.4.1 and newer use new blue icon filenames specifically to clear the old cache.
 
 ## Install with Claude or Codex
 
 Copy and paste this into your coding agent:
 
 ```text
-Clone or download https://github.com/filipelinsduarte/scrolling-stop into a normal local folder. Read skills/install-scroll-stop/SKILL.md from the cloned repository completely, then follow it to install Scroll Stop in Chrome. Do not ask for API keys because this extension does not use any. Preserve my existing files, run the included checks if Node.js is available, and give me the exact final Chrome steps for Load unpacked.
+Clone or download https://github.com/filipelinsduarte/scrolling-stop into a normal local folder. Read skills/install-scroll-stop/SKILL.md from the cloned repository completely, then follow it to install Scrolling Stop in Chrome. Do not ask for API keys because this extension does not use any. Preserve my existing files, run the included checks if Node.js is available, and give me the exact final Chrome steps for Load unpacked.
 ```
 
 For repeated use, copy the [`skills/install-scroll-stop`](skills/install-scroll-stop) folder into your Claude or Codex skills directory, then ask:
 
 ```text
-Use $install-scroll-stop to install and customize Scroll Stop in Chrome.
+Use $install-scroll-stop to install and customize Scrolling Stop in Chrome.
 ```
 
-## Use Scroll Stop
+## Use Scrolling Stop
 
 - Click **Set focus** to define as many objectives as you need.
 - Click **Attention report** to open the dedicated analytics view.
@@ -79,7 +79,9 @@ Newly added websites use their favicon from Chrome's local favicon cache. The ch
 
 ## Privacy
 
-The extension requests website access so Chrome can redirect domains from your blocked list. It does not read page content, collect browsing history, contact an external server, or transmit analytics. Focus goals, blocked domains, and attention statistics remain in `chrome.storage.local` on the current Chrome profile.
+The extension requests website access so Chrome can redirect domains from your blocked list. It does not read page content or collect browsing history. Focus goals, blocked domains, and attention statistics remain in `chrome.storage.local` on the current Chrome profile and are never transmitted.
+
+One anonymous count does leave the browser: an install or update event, and a page open on removal. Each carries a randomly generated identifier and the version number, and nothing else. Turn off **Anonymous usage stats** in the popup to stop it completely, which also deletes the identifier. `src/telemetry.js` is the only file in the extension that touches the network, and the full policy is at [scrollingstop.com/privacy](https://scrollingstop.com/privacy).
 
 The time-saved number is an estimate of 5 minutes for each explicit **Return to my focus** action. A blocked-page arrival counts as an attempt, but it does not count as time saved by itself.
 
@@ -95,8 +97,16 @@ Requirements for development checks:
 npm install
 npm test
 npx playwright install chromium
-npm run verify
-npm run verify:landing
+npm run verify           # unpacked extension, isolated Chromium profile
+npm run verify:landing   # landing page across three breakpoints
+```
+
+Release commands:
+
+```bash
+npm run store:assets     # Chrome Web Store screenshots and promo tile
+npm run package          # clean upload ZIP, with a secret scan
+npm run verify:package   # loads that ZIP in Chrome before you upload it
 ```
 
 The unit suite covers domain normalization, open-tab matching, redirect attribution, dynamic website copy, analytics calculations, focus goals, the hold-and-solve break challenge, and serialized rule updates. The browser verification loads the unpacked extension in an isolated Chromium profile and checks the complete popup, favicon, and redirect flows.
@@ -113,7 +123,12 @@ styles/                       Shared Toy Grade visual system
 tests/                        Vitest unit tests
 scripts/verify-extension.mjs  Isolated Chromium end-to-end verification
 scripts/verify-landing.mjs    Responsive landing-page browser verification
-docs/                         GitHub Pages landing page and extension download
+scripts/package-extension.mjs Clean store ZIP, with credential and secret guards
+scripts/verify-package.mjs    Loads the packaged ZIP in Chrome before upload
+scripts/generate-store-assets.mjs  Store screenshots and promo tile
+functions/api/event.js        Cloudflare proxy holding the analytics secret
+docs/                         Landing page, privacy policy, exit page, downloads
+STORE_LISTING.md              Paste-ready Chrome Web Store listing fields
 skills/install-scroll-stop/   Copyable Claude and Codex installation skill
 ```
 

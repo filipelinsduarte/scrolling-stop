@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Scroll Stop",
+  "name": "Scrolling Stop",
   "short_name": "Scroll Stop",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "description": "Block distracting sites and bring your own focus goals back when attention drifts.",
   "minimum_chrome_version": "120",
   "permissions": [
@@ -31,7 +31,7 @@
     }
   ],
   "action": {
-    "default_title": "Scroll Stop",
+    "default_title": "Scrolling Stop",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "images/icon-blue-v2-16.png",
@@ -56,5 +56,6 @@
         "<all_urls>"
       ]
     }
-  ]
+  ],
+  "homepage_url": "https://scrollingstop.com"
 }

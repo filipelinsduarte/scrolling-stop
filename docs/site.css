@@ -1590,3 +1590,163 @@ h3 {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Subpages: uninstall confirmation and privacy policy.
+   Both reuse .wrap, .brand, .kicker, .button and .site-footer from above. */
+.exit-main,
+.doc-main {
+  padding: 64px 0 88px;
+  background: var(--warm);
+}
+
+.exit-wrap,
+.doc-wrap {
+  width: min(760px, calc(100% - 48px));
+}
+
+.exit-wrap h1,
+.doc-wrap h1 {
+  margin: 14px 0 0;
+  font-size: clamp(30px, 5vw, 44px);
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.exit-lede,
+.doc-lede {
+  margin: 16px 0 34px;
+  color: var(--gray);
+  font-size: 18px;
+  text-wrap: pretty;
+}
+
+.exit-card,
+.doc-card {
+  margin-bottom: 18px;
+  padding: 26px 28px;
+  border: 2px solid var(--tan-soft);
+  border-radius: 22px;
+  background: var(--white);
+}
+
+.exit-card h2,
+.doc-card h2 {
+  margin: 0 0 8px;
+  font-family: var(--round);
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.exit-card p,
+.doc-card p {
+  margin: 0 0 12px;
+  color: var(--gray);
+  text-wrap: pretty;
+}
+
+.exit-card p:last-child,
+.doc-card p:last-child {
+  margin-bottom: 0;
+}
+
+.exit-hint {
+  font-size: 15px;
+}
+
+.doc-list {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--gray);
+}
+
+.doc-list li {
+  margin-bottom: 6px;
+  text-wrap: pretty;
+}
+
+.doc-list li:last-child {
+  margin-bottom: 0;
+}
+
+.doc-definitions {
+  margin: 0;
+}
+
+.doc-definitions dt {
+  margin-top: 14px;
+  color: var(--ink);
+  font-family: var(--round);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.doc-definitions dt:first-child {
+  margin-top: 0;
+}
+
+.doc-definitions dd {
+  margin: 4px 0 0;
+  color: var(--gray);
+  text-wrap: pretty;
+}
+
+.doc-card code {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--stone);
+  font-size: 14px;
+}
+
+.exit-actions,
+.doc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.exit-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.exit-reason {
+  min-height: 42px;
+  padding: 0 18px;
+  font-size: 15px;
+}
+
+.exit-reason:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.exit-reason.is-chosen {
+  border-color: var(--green-dark);
+  background: var(--green-soft);
+  color: var(--green-dark);
+  opacity: 1;
+}
+
+.exit-thanks {
+  margin-top: 16px;
+  color: var(--green-dark);
+  font-family: var(--round);
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .exit-main,
+  .doc-main {
+    padding: 44px 0 64px;
+  }
+
+  .exit-card,
+  .doc-card {
+    padding: 22px 20px;
+  }
+}

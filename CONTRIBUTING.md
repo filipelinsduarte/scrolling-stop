@@ -1,6 +1,6 @@
-# Contributing to Scroll Stop
+# Contributing to Scrolling Stop
 
-Thanks for helping make Scroll Stop calmer, clearer, and more reliable.
+Thanks for helping make Scrolling Stop calmer, clearer, and more reliable.
 
 ## Before opening a pull request
 
