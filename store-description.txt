@@ -1,0 +1,27 @@
+You open a tab to do one thing, and twenty minutes later you are three feeds deep with no memory of deciding to go there. The problem is not willpower. It is that the distance between the impulse and the feed is a single keystroke.
+
+Scrolling Stop puts something in that gap.
+
+BLOCK THE SITES THAT PULL YOU IN
+Add any website in one step. Chrome enforces the block itself using its own rules engine, which means the extension never watches your traffic to do its job.
+
+A PAUSE THAT ACTUALLY PAUSES
+Getting through to a blocked site takes two timed five-second holds and a small calculation. Not because you can never go, but because the urge that dragged you there rarely survives fifteen seconds of friction. When you do go through, you get two minutes, per site, and it re-locks on its own.
+
+YOUR OWN GOALS, AT THE MOMENT YOU DRIFT
+Write down what you actually meant to do today. Those words come back on screen at the exact moment attention wanders, which is the only moment they are any use.
+
+SEE THE PATTERN
+Every blocked attempt and every return to focus is counted, so you can see which site tests you most and whether it is getting easier. The numbers stay on your machine.
+
+NOTHING ABOUT YOU LEAVES YOUR BROWSER
+No account. No sign-in. No server holding your data. Your blocked list, your goals and your attention history live in Chrome's local storage and go nowhere else. The extension sends exactly one thing: an anonymous count when it is installed or removed, so we know whether anyone is using this. It contains a random identifier and a version number, nothing more, and you can switch it off in the popup in one click.
+
+WHAT IT DOES NOT DO
+It does not read the pages you visit. It does not track your browsing history. It does not sync anything to a server, because there is no server. It does not ask you to create an account.
+
+OPEN SOURCE, SO YOU CAN CHECK
+The full source is public and MIT licensed. Every claim above can be confirmed by reading the code.
+
+Source: https://github.com/filipelinsduarte/scrolling-stop
+Privacy: https://scrollingstop.com/privacy
