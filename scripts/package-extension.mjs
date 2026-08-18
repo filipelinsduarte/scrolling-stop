@@ -5,7 +5,7 @@
 // Run with: npm run package
 
 import { execFile } from "node:child_process";
-import { cp, mkdir, mkdtemp, readFile, rm, stat } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, rm, stat, utimes } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -96,6 +96,14 @@ try {
     if (hit) {
       throw new Error(`Refusing to package ${file}: it matches a secret pattern (${hit}).`);
     }
+  }
+
+  // Zip embeds each file's mtime, so two runs over identical content would
+  // otherwise produce different bytes and show up as a dirty working tree
+  // after every build. Pinning the timestamps makes the archive reproducible.
+  const FIXED_MTIME = new Date("2020-01-01T00:00:00Z");
+  for (const file of staged) {
+    await utimes(path.join(stageDirectory, file), FIXED_MTIME, FIXED_MTIME);
   }
 
   const zipName = `scrolling-stop-extension-v${version}.zip`;
