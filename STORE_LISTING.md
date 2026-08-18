@@ -37,19 +37,22 @@ a paid tier, this has to be revisited.
 
 ## Store listing tab
 
-**Name** (45 characters max)
+**Title** (read-only, comes from `manifest.json` "name")
 
 ```
 Scrolling Stop
 ```
 
-**Short description** (132 characters max, currently 118)
+**Summary** (read-only, comes from `manifest.json` "description", 132 char max, currently 82)
 
 ```
-Block the sites that pull you in, bring your own goals back when attention drifts, and see how often you choose focus.
+Block distracting sites and bring your own focus goals back when attention drifts.
 ```
 
-**Category**: Productivity
+Both are greyed out in the dashboard. Changing either means editing
+`manifest.json`, running `npm run package`, and uploading a new ZIP.
+
+**Category**: Productivity (sub-category **Workflow & Planning** if asked)
 **Language**: English (United States)
 
 **Detailed description**
@@ -80,6 +83,23 @@ The full source is public and MIT licensed. Every claim above can be confirmed b
 Source: https://github.com/filipelinsduarte/scrolling-stop
 Privacy: https://scrollingstop.com/privacy
 ```
+
+**Additional fields**
+
+| Field | Value |
+| --- | --- |
+| Official URL | `scrollingstop.com` if it appears in the dropdown, otherwise leave as **None** |
+| Homepage URL | `https://scrollingstop.com` |
+| Support URL | `https://github.com/filipelinsduarte/scrolling-stop/issues` |
+| Mature content | **No** |
+| Item support | **On** |
+| Promo video | Leave empty |
+
+Official URL only lists sites the signed-in dashboard account owns in Google
+Search Console. The service account has access to `sc-domain:scrollingstop.com`,
+but that does not put it in this dropdown. If the domain is missing, either add
+the dashboard's Google account as an owner in Search Console first, or leave the
+field as None. It is optional and does not block submission.
 
 ---
 
@@ -128,14 +148,18 @@ https://scrollingstop.com/privacy
 
 Generated into `docs/store/` by `npm run store:assets`.
 
-| Asset | File | Size |
+| Dashboard field | File in `docs/store/` | Size |
 | --- | --- | --- |
-| Store icon | `images/icon-blue-v2-128.png` | 128x128 |
-| Screenshot 1 | `docs/store/screenshot-1-block.png` | 1280x800 |
-| Screenshot 2 | `docs/store/screenshot-2-pause.png` | 1280x800 |
-| Screenshot 3 | `docs/store/screenshot-3-goals.png` | 1280x800 |
-| Screenshot 4 | `docs/store/screenshot-4-report.png` | 1280x800 |
-| Small promo tile | `docs/store/promo-small.png` | 440x280 |
+| Store icon | `store-icon-128x128.png` | 128x128 |
+| Screenshot 1 | `screenshot-1-1280x800.png` | 1280x800 |
+| Screenshot 2 | `screenshot-2-1280x800.png` | 1280x800 |
+| Screenshot 3 | `screenshot-3-1280x800.png` | 1280x800 |
+| Screenshot 4 | `screenshot-4-1280x800.png` | 1280x800 |
+| Small promo tile | `small-promo-tile-440x280.png` | 440x280 |
+| Marquee promo tile | `marquee-promo-tile-1400x560.png` | 1400x560 |
+
+Every file is a 24-bit PNG with no alpha channel, which the store requires and
+rejects silently if wrong. The generator flattens them, so regenerating is safe.
 
 Upload package: `artifacts/scrolling-stop-extension-v<version>.zip`, built by
 `npm run package` and smoke-tested by `npm run verify:package`.

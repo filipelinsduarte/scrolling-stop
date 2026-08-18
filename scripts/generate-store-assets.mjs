@@ -44,25 +44,25 @@ const SHOWCASE_SETTINGS = {
 // line is written to a similar length so the frames stay visually consistent.
 const FRAMES = [
   {
-    file: "screenshot-1-block.png",
+    file: "screenshot-1-1280x800.png",
     proofs: ["Any website, added in one step", "Chrome does the blocking itself", "Your list never leaves the browser"],
     headline: "Block the sites that pull you in.",
     support: "Add any website in one step. Chrome enforces the block itself, so nothing you browse is ever observed.",
   },
   {
-    file: "screenshot-2-pause.png",
+    file: "screenshot-2-1280x800.png",
     proofs: ["Two timed holds, not one click", "A small calculation to finish", "Breaks expire on their own"],
     headline: "A real pause, not a one-click bypass.",
     support: "Two timed holds and a small calculation stand between you and the feed, long enough for the urge to pass.",
   },
   {
-    file: "screenshot-3-goals.png",
+    file: "screenshot-3-1280x800.png",
     proofs: ["Write as many goals as you need", "Shown the moment you drift", "Edited any time, in two clicks"],
     headline: "Your own goals, at the moment you drift.",
     support: "Write what actually matters today. It comes back on screen exactly when attention starts to wander off.",
   },
   {
-    file: "screenshot-4-report.png",
+    file: "screenshot-4-1280x800.png",
     proofs: ["Attempts counted per website", "Focus returns tracked over time", "Stored on your machine only"],
     headline: "See how often you chose focus.",
     support: "Every blocked attempt and every return is counted on your machine, and none of it leaves your browser.",
@@ -189,6 +189,44 @@ async function applyBrandMarks(page) {
   return applied;
 }
 
+function marqueePage({ version, shotDataUri }) {
+  return `<!doctype html><html><head><meta charset="utf-8"><style>
+    :root{--white:#fff;--warm:#fbfaf9;--ink:#343433;--gray:#747484;
+      --blue:#1a88f8;--blue-dark:#0f6ac9;--stone:#f2ebe0;--tan-soft:rgba(178,167,154,.34);
+      --round: ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold","Avenir Next",Avenir,sans-serif;
+      --sans:"Avenir Next",Avenir,ui-rounded,"Segoe UI",sans-serif}
+    *{box-sizing:border-box;margin:0}
+    body{width:1400px;height:560px;display:flex;align-items:center;gap:70px;
+      padding:0 82px;background:linear-gradient(155deg,#ffffff 0%,var(--warm) 58%,#eef6ff 100%);
+      font-family:var(--sans);color:var(--ink);overflow:hidden}
+    .copy{flex:1 1 0;min-width:0}
+    .brand{display:inline-flex;align-items:center;gap:13px;margin-bottom:22px;
+      font-family:var(--round);font-size:25px;font-weight:700;letter-spacing:-.035em}
+    .mark{display:inline-flex;width:44px;height:44px;align-items:center;justify-content:center;
+      gap:6px;border-radius:14px;background:linear-gradient(160deg,var(--blue),var(--blue-dark))}
+    .mark span{display:block;width:6px;height:20px;border-radius:3px;background:var(--white)}
+    h1{font-family:var(--round);font-size:60px;line-height:1.06;letter-spacing:-.04em}
+    h1 em{font-style:normal;color:var(--blue-dark)}
+    p{margin-top:20px;max-width:34ch;color:var(--gray);font-size:22px;line-height:1.45;
+      text-wrap:pretty}
+    .ver{display:inline-block;margin-top:26px;padding:9px 18px;border-radius:999px;
+      background:var(--stone);font-family:var(--round);font-size:16px;font-weight:700}
+    .shot{flex:0 0 auto;display:flex;align-items:flex-start;justify-content:center;
+      width:340px;height:526px;border-radius:26px 26px 0 0;background:var(--white);
+      border:2px solid var(--tan-soft);border-bottom:0;
+      box-shadow:0 -6px 40px rgba(52,52,51,.1);overflow:hidden}
+    .shot img{display:block;width:100%;height:auto}
+  </style></head><body>
+    <div class="copy">
+      <div class="brand"><span class="mark"><span></span><span></span></span>Scrolling Stop</div>
+      <h1>Stop the scroll.<br><em>Return to focus.</em></h1>
+      <p>Block the sites that pull you in, and get your own goals back at the moment attention drifts.</p>
+      <span class="ver">Free and open source, v${version}</span>
+    </div>
+    <div class="shot"><img src="${shotDataUri}" alt=""></div>
+  </body></html>`;
+}
+
 async function waitForPopup(page) {
   await page.locator("#site-count").waitFor({ state: "visible" });
   await page.waitForFunction(() => [...document.images].every((image) => image.complete));
@@ -217,6 +255,7 @@ async function toDataUri(buffer) {
 async function writeExact(buffer, file, width, height) {
   await sharp(buffer)
     .resize(width, height, { fit: "fill" })
+    .flatten({ background: "#fbfaf9" })
     .png({ compressionLevel: 9 })
     .toFile(path.join(outputDirectory, file));
 }
@@ -316,8 +355,25 @@ try {
   await canvas.setViewportSize({ width: 440, height: 280 });
   await canvas.setContent(promoPage({ version }), { waitUntil: "load" });
   await canvas.waitForTimeout(240);
-  await writeExact(await canvas.screenshot(), "promo-small.png", 440, 280);
-  written.push("promo-small.png");
+  await writeExact(await canvas.screenshot(), "small-promo-tile-440x280.png", 440, 280);
+  written.push("small-promo-tile-440x280.png");
+
+  await canvas.setViewportSize({ width: 1400, height: 560 });
+  await canvas.setContent(marqueePage({
+    version,
+    shotDataUri: await toDataUri(shots[0]),
+  }), { waitUntil: "load" });
+  await canvas.waitForTimeout(320);
+  await writeExact(await canvas.screenshot(), "marquee-promo-tile-1400x560.png", 1400, 560);
+  written.push("marquee-promo-tile-1400x560.png");
+
+  // The shipped icon carries transparency, which the store rejects for some
+  // slots, so a flattened copy is written alongside it.
+  await sharp(path.join(projectDirectory, "images", "icon-blue-v2-128.png"))
+    .flatten({ background: "#ffffff" })
+    .png({ compressionLevel: 9 })
+    .toFile(path.join(outputDirectory, "store-icon-128x128.png"));
+  written.push("store-icon-128x128.png");
 
   console.log(JSON.stringify({
     outputDirectory: path.relative(projectDirectory, outputDirectory),
