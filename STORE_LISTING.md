@@ -9,11 +9,19 @@ images with `npm run store:assets` and the upload with `npm run package`.
 
 **Publisher**: individual account, not an organization.
 
-| Field | Value |
-| --- | --- |
-| Publisher display name | `Filipe Duarte` |
-| Contact email | `filipe@aipeekaboo.com` |
-| Publisher website | `https://scrollingstop.com` |
+Two different emails are involved, and only one of them becomes public.
+
+| Field | Value | Public? |
+| --- | --- | --- |
+| Google account you sign in with | `filipeoliveira.duarte@gmail.com` | No |
+| Publisher display name | `Filipe Duarte` | Yes, on the listing |
+| Contact email | `filipe@aipeekaboo.com` | **Yes, on the listing** |
+| Publisher website | `https://scrollingstop.com` | Yes, on the listing |
+
+The account email is only the login and stays private. The contact email is
+shown to everyone who views the listing, which is why it is set to the agency
+address rather than the personal one. Change it to the personal address only
+if you want that address public.
 
 The contact email has to be verified before the item can be submitted, so
 verify it first. Google shows the publisher display name on the public
