@@ -121,6 +121,14 @@ Scrolling Stop blocks websites the user has chosen to block, and shows the user 
 | `alarms` | Ends a timed two-minute break at the correct moment and restores the block, including when the popup is closed and the service worker has been suspended. |
 | `favicon` | Displays each blocked website's icon next to its entry in the user's list, using the copy Chrome has already cached locally. No network request is made for it. |
 
+**Remote code use**
+
+Select **"No, I am not using remote code"**. Every script the extension runs is
+in the uploaded package: no `eval`, no `new Function` on remote input, no
+remotely hosted script, no remote WASM. The one network request sends JSON and
+receives a status response that is never executed. This question hard-blocks
+submission if left unanswered.
+
 **Data usage disclosures**
 
 Tick **none** of the data-type checkboxes. The extension collects no

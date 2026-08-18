@@ -1,0 +1,106 @@
+================================================================
+CHROME WEB STORE - PRIVACY PRACTICES TAB
+Paste each block into the matching box. Nothing here is optional.
+================================================================
+
+
+----------------------------------------------------------------
+SINGLE PURPOSE DESCRIPTION
+----------------------------------------------------------------
+
+Scrolling Stop blocks websites the user has chosen to block, and shows the user their own written focus goals when they try to open one of those sites. Every feature serves that single purpose of helping the user stay on the task they set for themselves.
+
+
+----------------------------------------------------------------
+PERMISSION: alarms
+----------------------------------------------------------------
+
+When the user takes a timed two-minute break from a blocked site, the alarms permission is what restores the block at the moment the break expires. A break has to end reliably even when the popup is closed and Chrome has suspended the extension's service worker, and an alarm is the only mechanism that survives that suspension. It is used for nothing else.
+
+
+----------------------------------------------------------------
+PERMISSION: declarativeNetRequest
+----------------------------------------------------------------
+
+This performs the actual blocking. The extension hands Chrome a rule set built from the user's own list of blocked websites, and Chrome enforces it. This approach is used specifically so that the extension never observes the user's network requests: it supplies rules and Chrome applies them, so no browsing activity is ever visible to, or collected by, the extension.
+
+
+----------------------------------------------------------------
+PERMISSION: favicon
+----------------------------------------------------------------
+
+The popup shows the user their list of blocked websites, and this permission displays each site's icon next to its entry so the list is scannable at a glance. It reads only the icon Chrome has already cached locally and makes no network request of its own. It is purely presentational and is used nowhere else in the extension.
+
+
+----------------------------------------------------------------
+PERMISSION: storage
+----------------------------------------------------------------
+
+This keeps the user's own settings on their own machine between browser sessions: the list of websites they chose to block, the focus goals they wrote for themselves, their local counts of blocked attempts and returns to focus, and any break currently running. All of it stays in local storage on the user's device and none of it is transmitted anywhere.
+
+
+----------------------------------------------------------------
+HOST PERMISSION USE  (*://*/*)
+----------------------------------------------------------------
+
+The user decides which websites to block and can name any website at all, so the extension cannot declare a fixed list of hosts in advance. The broad match pattern exists only so that a user-chosen site can be matched against the user's own blocked list and replaced with the extension's block page. The extension does not read page content, does not inject scripts into pages to observe them, and does not collect, store or transmit browsing history or any data derived from the pages the user visits. The blocking itself is carried out by Chrome through declarativeNetRequest rather than by the extension inspecting traffic.
+
+
+----------------------------------------------------------------
+REMOTE CODE USE
+----------------------------------------------------------------
+
+Select: "No, I am not using remote code"
+
+If a justification box appears, paste this:
+
+All JavaScript, HTML and CSS the extension executes is contained in the uploaded package. Nothing is fetched and evaluated at runtime: there is no eval, no new Function on remote input, no remotely hosted script, and no remote WASM. The extension makes exactly one network request, which sends an anonymous install count as JSON and receives only a status response. No part of that response is ever executed.
+
+
+----------------------------------------------------------------
+DATA USAGE
+----------------------------------------------------------------
+
+Data types collected: tick NONE of the checkboxes.
+
+The extension collects no personally identifiable information, no health
+information, no financial or payment information, no authentication
+information, no personal communications, no location, no web history and
+no website content. The only value transmitted is a randomly generated
+identifier plus a version number, which identifies an installation rather
+than a person, and the user can switch it off in the popup.
+
+Then tick ALL THREE certification checkboxes:
+
+  [x] I do not sell or transfer user data to third parties, outside of
+      the approved use cases
+  [x] I do not use or transfer user data for purposes that are unrelated
+      to my item's single purpose
+  [x] I do not use or transfer user data to determine creditworthiness
+      or for lending purposes
+
+These three are the "certify that your data usage complies" error. All
+three must be ticked or the item cannot be submitted.
+
+
+----------------------------------------------------------------
+PRIVACY POLICY URL
+----------------------------------------------------------------
+
+https://scrollingstop.com/privacy
+
+
+================================================================
+SETTINGS PAGE  (account level, not the item page)
+================================================================
+
+Contact email:  filipe@aipeekaboo.com
+
+This is shown publicly on the listing, which is why it is the agency
+address rather than the personal Gmail used to sign in.
+
+After entering it, click the verification link Google emails to that
+address. Entering it is not enough. Both of these are separate errors:
+
+  "You must provide a contact email"  -> enter it
+  "You must verify the publisher's contact email"  -> click the emailed link
