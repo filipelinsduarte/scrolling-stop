@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Scroll Stop</title>
+    <title>Scrolling Stop</title>
     <link rel="stylesheet" href="styles/tokens.css">
     <link rel="stylesheet" href="styles/popup.css">
   </head>
@@ -17,7 +17,7 @@
             </span>
             <div>
               <p class="eyebrow">Attention guard</p>
-              <h1>Scroll Stop</h1>
+              <h1>Scrolling Stop</h1>
             </div>
           </div>
           <label class="switch" aria-label="Turn blocking on or off">
@@ -119,6 +119,19 @@
           </form>
         </section>
 
+        <section class="privacy-row" aria-labelledby="privacy-heading">
+          <div class="privacy-copy">
+            <h2 id="privacy-heading">Anonymous usage stats</h2>
+            <p>An install count only. Your sites and activity never leave this browser.</p>
+          </div>
+          <label class="switch" aria-label="Share anonymous usage stats">
+            <input id="telemetry-toggle" type="checkbox">
+            <span class="switch-track" aria-hidden="true">
+              <span class="switch-thumb"></span>
+            </span>
+          </label>
+        </section>
+
         <p id="notice" class="notice" aria-live="polite"></p>
       </main>
 
@@ -151,7 +164,7 @@
 
       <section id="focus-view" class="popup-view focus-view" aria-hidden="true" aria-labelledby="focus-page-title" inert>
         <header class="focus-page-header">
-          <button id="focus-back-button" class="back-button" type="button" aria-label="Back to Scroll Stop">
+          <button id="focus-back-button" class="back-button" type="button" aria-label="Back to Scrolling Stop">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg>
           </button>
           <span class="focus-page-label">Focus plan</span>
@@ -186,7 +199,7 @@
 
       <section id="analytics-view" class="popup-view analytics-view" aria-hidden="true" aria-labelledby="analytics-page-title" inert>
         <header class="focus-page-header analytics-page-header">
-          <button id="analytics-back-button" class="back-button" type="button" aria-label="Back to Scroll Stop">
+          <button id="analytics-back-button" class="back-button" type="button" aria-label="Back to Scrolling Stop">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg>
           </button>
           <span class="focus-page-label">Attention report</span>

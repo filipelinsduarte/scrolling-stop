@@ -51,7 +51,7 @@ async function warmFaviconCache(context, url) {
     });
     await page.waitForTimeout(1_200);
   } catch (error) {
-    console.warn(`[Scroll Stop] Could not warm favicon cache for ${url}`, error.message);
+    console.warn(`[Scrolling Stop] Could not warm favicon cache for ${url}`, error.message);
   } finally {
     await page.close();
   }

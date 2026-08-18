@@ -14,6 +14,13 @@ import {
   recordBlockedAttempt as addBlockedAttempt,
   recordFocusReturn as addFocusReturn,
 } from "./src/analytics.js";
+import {
+  TELEMETRY_ENDPOINT,
+  buildEventPayload,
+  buildUninstallUrl,
+  ensureClientId,
+  shouldReportInstall,
+} from "./src/telemetry.js";
 
 const SETTINGS_KEYS = [
   "enabled",
@@ -23,6 +30,7 @@ const SETTINGS_KEYS = [
   "pausedDomain",
   "pausedDomains",
   "analytics",
+  "telemetry",
 ];
 const RESUME_ALARM = "resume-blocking";
 const enqueueRuleSync = createTaskQueue();
@@ -35,7 +43,8 @@ function settingsAreEqual(first, second) {
     && JSON.stringify(first.pausedDomains) === JSON.stringify(second.pausedDomains)
     && JSON.stringify(first.blockedDomains) === JSON.stringify(second.blockedDomains)
     && JSON.stringify(first.focusGoals) === JSON.stringify(second.focusGoals)
-    && JSON.stringify(first.analytics) === JSON.stringify(second.analytics);
+    && JSON.stringify(first.analytics) === JSON.stringify(second.analytics)
+    && JSON.stringify(first.telemetry) === JSON.stringify(second.telemetry);
 }
 
 async function readSettings() {
@@ -102,7 +111,7 @@ async function redirectOpenBlockedTabs(settings) {
     try {
       await chrome.tabs.update(tab.id, { url: redirectUrl });
     } catch (error) {
-      console.warn(`[Scroll Stop] Could not redirect tab ${tab.id}`, error);
+      console.warn(`[Scrolling Stop] Could not redirect tab ${tab.id}`, error);
     }
   }
 }
@@ -123,6 +132,7 @@ async function schedulePauseAlarm(settings) {
 async function initialize() {
   const settings = await scheduleRuleSync();
   await schedulePauseAlarm(settings);
+  await syncUninstallUrl(settings);
 }
 
 async function getPublicState() {
@@ -277,6 +287,71 @@ async function recordFocusReturn() {
   });
 }
 
+function getExtensionVersion() {
+  return chrome.runtime.getManifest().version || "";
+}
+
+// Chrome opens this URL in a tab on removal, which is how the uninstall is
+// counted. It is cleared for an opted-out user so no tab is opened at all.
+async function syncUninstallUrl(settings) {
+  const uninstallUrl = buildUninstallUrl(settings.telemetry, getExtensionVersion());
+  await chrome.runtime.setUninstallURL(uninstallUrl || "");
+}
+
+// Fires once per version, and never for a user who opted out. The request is
+// deliberately best effort: a network failure must never affect blocking, so
+// the version is only marked as reported after the endpoint accepts it.
+async function reportInstall(reason) {
+  const settings = await readSettings();
+  const version = getExtensionVersion();
+  if (!shouldReportInstall(settings.telemetry, version)) {
+    return;
+  }
+
+  const telemetry = ensureClientId(settings.telemetry, () => crypto.randomUUID());
+  if (telemetry.clientId !== settings.telemetry.clientId) {
+    await writeSettings({ ...settings, telemetry });
+  }
+
+  const payload = buildEventPayload({
+    clientId: telemetry.clientId,
+    version,
+    reason,
+  });
+  if (!payload) {
+    return;
+  }
+
+  const response = await fetch(TELEMETRY_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    throw new Error(`Endpoint returned ${response.status}`);
+  }
+
+  const latestSettings = await readSettings();
+  await writeSettings({
+    ...latestSettings,
+    telemetry: { ...latestSettings.telemetry, clientId: telemetry.clientId, reportedVersion: version },
+  });
+}
+
+async function setTelemetryEnabled(message) {
+  const settings = await readSettings();
+  const enabled = Boolean(message.enabled);
+  // Opting out clears the client id as well, so the identifier is genuinely
+  // discarded rather than kept dormant until the user changes their mind.
+  const telemetry = enabled
+    ? { ...settings.telemetry, enabled: true }
+    : { enabled: false, clientId: "", reportedVersion: "" };
+
+  await writeSettings({ ...settings, telemetry });
+  await syncUninstallUrl({ telemetry });
+  return getPublicState();
+}
+
 const MESSAGE_HANDLERS = {
   addDomain,
   getState: getPublicState,
@@ -288,18 +363,22 @@ const MESSAGE_HANDLERS = {
   resumeBlocking,
   setEnabled,
   setFocusGoals,
+  setTelemetryEnabled,
 };
 
 function runSafely(label, task) {
   task().catch((error) => {
-    console.error(`[Scroll Stop] ${label} failed`, error);
+    console.error(`[Scrolling Stop] ${label} failed`, error);
   });
 }
 
 runSafely("service worker boot", initialize);
 
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener((details) => {
   runSafely("installation", initialize);
+  // Kept in its own runSafely so a blocked or offline endpoint cannot stop
+  // the extension from setting itself up.
+  runSafely("install reporting", () => reportInstall(details?.reason));
 });
 
 chrome.runtime.onStartup.addListener(() => {
@@ -343,7 +422,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   Promise.resolve(handler(message))
     .then((data) => sendResponse({ ok: true, data }))
     .catch((error) => {
-      console.error("[Scroll Stop] Message failed", error);
+      console.error("[Scrolling Stop] Message failed", error);
       sendResponse({ ok: false, error: error.message || "Something went wrong." });
     });
 

@@ -37,7 +37,7 @@ async function refreshPageGuard() {
   try {
     response = await chrome.runtime.sendMessage({ type: "getState" });
   } catch (error) {
-    console.warn("[Scroll Stop] Page guard could not read settings", error);
+    console.warn("[Scrolling Stop] Page guard could not read settings", error);
     return;
   }
 
@@ -45,7 +45,7 @@ async function refreshPageGuard() {
     return;
   }
   if (!response?.ok) {
-    console.warn("[Scroll Stop] Page guard received no settings");
+    console.warn("[Scrolling Stop] Page guard received no settings");
     return;
   }
 
@@ -82,20 +82,20 @@ async function bootPageGuard() {
       throw new Error("Page guard logic is unavailable.");
     }
   } catch (error) {
-    console.warn("[Scroll Stop] Page guard setup failed", error);
+    console.warn("[Scrolling Stop] Page guard setup failed", error);
     return;
   }
 
   try {
     chrome.storage.onChanged.addListener(handleGuardStorageChange);
   } catch (error) {
-    console.warn("[Scroll Stop] Page guard listener setup failed", error);
+    console.warn("[Scrolling Stop] Page guard listener setup failed", error);
   }
 
   try {
     await refreshPageGuard();
   } catch (error) {
-    console.warn("[Scroll Stop] Page guard first check failed", error);
+    console.warn("[Scrolling Stop] Page guard first check failed", error);
   }
 }
 

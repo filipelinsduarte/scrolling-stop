@@ -1,4 +1,5 @@
 import { DEFAULT_ANALYTICS, normalizeAnalytics } from "./analytics.js";
+import { DEFAULT_TELEMETRY, normalizeTelemetry } from "./telemetry.js";
 
 export const DEFAULT_SETTINGS = Object.freeze({
   enabled: true,
@@ -8,6 +9,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   pausedDomain: null,
   pausedDomains: Object.freeze({}),
   analytics: DEFAULT_ANALYTICS,
+  telemetry: DEFAULT_TELEMETRY,
 });
 
 const SUPPORTED_PROTOCOLS = new Set(["http:", "https:"]);
@@ -191,6 +193,7 @@ export function getEffectiveSettings(rawSettings, defaults, now = Date.now()) {
     now,
   );
   const analytics = normalizeAnalytics(safeRawSettings.analytics);
+  const telemetry = normalizeTelemetry(safeRawSettings.telemetry);
 
   return {
     enabled,
@@ -202,6 +205,7 @@ export function getEffectiveSettings(rawSettings, defaults, now = Date.now()) {
     pausedDomain: null,
     pausedDomains: domainPauses,
     analytics,
+    telemetry,
   };
 }
 

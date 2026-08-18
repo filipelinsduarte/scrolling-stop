@@ -36,6 +36,7 @@ function requireElement(id) {
 
 function cacheElements() {
   elements.enabledToggle = requireElement("enabled-toggle");
+  elements.telemetryToggle = requireElement("telemetry-toggle");
   elements.statusTitle = requireElement("status-title");
   elements.statusDetail = requireElement("status-detail");
   elements.pauseButton = requireElement("pause-button");
@@ -86,7 +87,7 @@ function cacheElements() {
 async function sendMessage(message) {
   const response = await chrome.runtime.sendMessage(message);
   if (!response?.ok) {
-    throw new Error(response?.error || "Scroll Stop could not complete that action.");
+    throw new Error(response?.error || "Scrolling Stop could not complete that action.");
   }
   return response.data;
 }
@@ -236,7 +237,7 @@ function renderStatus() {
 function renderCurrentSiteButton() {
   const buttonLabel = elements.blockCurrentButton.querySelector("span");
   if (!buttonLabel) {
-    console.warn("[Scroll Stop] Current-site button label is missing.");
+    console.warn("[Scrolling Stop] Current-site button label is missing.");
     return;
   }
 
@@ -355,8 +356,14 @@ function renderAnalytics() {
   elements.analyticsDomainList.replaceChildren(fragment);
 }
 
+function renderPrivacy() {
+  const telemetry = state.settings?.telemetry;
+  elements.telemetryToggle.checked = telemetry?.enabled ?? true;
+}
+
 function render() {
   renderStatus();
+  renderPrivacy();
   renderFocus();
   renderSiteList();
   renderAnalytics();
@@ -365,7 +372,7 @@ function render() {
 
 function showNotice(message, type = "success", target = elements.notice) {
   if (!target) {
-    console.warn("[Scroll Stop] Notice target is missing.");
+    console.warn("[Scrolling Stop] Notice target is missing.");
     return;
   }
 
@@ -798,6 +805,7 @@ async function handleSiteListClick(event) {
 
 function bindEvents() {
   elements.enabledToggle.addEventListener("change", handleEnabledChange);
+  elements.telemetryToggle.addEventListener("change", handleTelemetryChange);
   elements.settingsHoldButton.addEventListener("pointerdown", startSettingsHold);
   elements.settingsHoldButton.addEventListener("pointerup", cancelSettingsHold);
   elements.settingsHoldButton.addEventListener("pointercancel", cancelSettingsHold);
@@ -844,13 +852,39 @@ function bindEvents() {
   });
 }
 
+// Opting out is a single click with no challenge. The challenge exists to
+// protect the blocking guardrail, and applying it here would read as pressure
+// to keep reporting switched on.
+async function handleTelemetryChange() {
+  const desiredEnabled = elements.telemetryToggle.checked;
+  elements.telemetryToggle.disabled = true;
+
+  try {
+    state.settings = await sendMessage({
+      type: "setTelemetryEnabled",
+      enabled: desiredEnabled,
+    });
+    showNotice(
+      desiredEnabled
+        ? "Thanks. Only an anonymous install count is shared."
+        : "Usage stats are off and the anonymous id was deleted.",
+    );
+  } catch (error) {
+    console.error("[Scrolling Stop] Usage stats change failed", error);
+    showNotice("That setting could not be saved.", "error");
+  } finally {
+    elements.telemetryToggle.disabled = false;
+    renderPrivacy();
+  }
+}
+
 async function bootStep(label, task) {
   try {
     await task();
   } catch (error) {
-    console.error(`[Scroll Stop] ${label} failed`, error);
+    console.error(`[Scrolling Stop] ${label} failed`, error);
     if (elements.notice) {
-      showNotice("Scroll Stop could not load completely. Reload the extension.", "error");
+      showNotice("Scrolling Stop could not load completely. Reload the extension.", "error");
     }
   }
 }

@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#1a88f8">
+    <meta name="robots" content="index,follow">
+    <meta name="description" content="What Scrolling Stop stores, what it never collects, and the single anonymous count you can switch off.">
+    <link rel="canonical" href="https://scrollingstop.com/privacy">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Scrolling Stop">
+    <meta property="og:title" content="Privacy | Scrolling Stop">
+    <meta property="og:description" content="Your blocked sites, goals and attention history never leave your browser.">
+    <meta property="og:url" content="https://scrollingstop.com/privacy">
+    <meta property="og:image" content="https://scrollingstop.com/social-card.png">
+    <title>Privacy | Scrolling Stop</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="stylesheet" href="site.css">
+    <script>document.documentElement.className = "js";</script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-31C8PKE92Z"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-31C8PKE92Z');
+    </script>
+  </head>
+  <body>
+    <header class="site-nav">
+      <div class="wrap nav-inner">
+        <a class="brand" href="/">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span></span>
+          <span>Scrolling Stop</span>
+        </a>
+      </div>
+    </header>
+
+    <main id="main-content" class="doc-main">
+      <div class="wrap doc-wrap">
+        <p class="kicker"><span></span> Privacy</p>
+        <h1>Your blocked sites never leave your browser.</h1>
+        <p class="doc-lede">
+          Scrolling Stop needs to see the address of the page you are opening in order to
+          block it. That check happens inside Chrome, on your own machine, and the result
+          is never transmitted, logged or sold. Last updated 18 August 2026.
+        </p>
+
+        <section class="doc-card" aria-labelledby="stored-heading">
+          <h2 id="stored-heading">What is stored, and where</h2>
+          <p>
+            Chrome's local extension storage on your own computer holds these four things.
+            None of it is sent anywhere, and uninstalling the extension deletes all of it.
+          </p>
+          <ul class="doc-list">
+            <li>The list of websites you chose to block.</li>
+            <li>The focus goals you wrote for yourself.</li>
+            <li>Counts of blocked attempts per website, and how often you returned to focus.</li>
+            <li>Any break you are currently taking, and when it expires.</li>
+          </ul>
+        </section>
+
+        <section class="doc-card" aria-labelledby="never-heading">
+          <h2 id="never-heading">What is never collected</h2>
+          <p>
+            There is no account, no login and no server holding anything about you. The
+            extension does not read, store or transmit any of the following.
+          </p>
+          <ul class="doc-list">
+            <li>Your browsing history, open tabs or page contents.</li>
+            <li>Form input, passwords, cookies or anything you type on a website.</li>
+            <li>Your name, email address, IP address or location.</li>
+            <li>The specific websites you block, which stay on your machine only.</li>
+          </ul>
+        </section>
+
+        <section class="doc-card" aria-labelledby="count-heading">
+          <h2 id="count-heading">The one anonymous count, and how to switch it off</h2>
+          <p>
+            To know whether anyone is actually using this, the extension sends one message
+            when it is installed or updated, and opens this website when it is removed.
+            That message carries a random identifier, the version number, and whether it
+            was a new install or an update. It carries nothing else at all, and never
+            anything at all about the websites you happen to visit.
+          </p>
+          <p>
+            The random identifier is generated on your machine, is not derived from
+            anything about you or your computer, and cannot be linked back to you. Open
+            the extension and turn off <strong>Anonymous usage stats</strong> to stop this
+            completely. Switching it off also deletes the identifier, and no page is opened
+            when you later remove the extension.
+          </p>
+          <p>
+            These counts are processed by Google Analytics with personalised advertising
+            disabled. Google's handling is covered by the
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a>.
+          </p>
+        </section>
+
+        <section class="doc-card" aria-labelledby="permissions-heading">
+          <h2 id="permissions-heading">Why the permissions are what they are</h2>
+          <dl class="doc-definitions">
+            <dt>Access to all websites</dt>
+            <dd>You can block any website you choose, so the extension cannot know in advance which addresses it needs to check. It only ever compares an address against your own blocked list.</dd>
+            <dt>declarativeNetRequest</dt>
+            <dd>Chrome performs the blocking itself from rules the extension hands over. This design means the extension never observes your actual traffic.</dd>
+            <dt>Storage</dt>
+            <dd>Keeps your blocked list, goals and counts on your machine between sessions.</dd>
+            <dt>Alarms</dt>
+            <dd>Ends a timed break at the right moment and puts the block back in place.</dd>
+            <dt>Favicon</dt>
+            <dd>Shows each blocked website's icon in your list, using the copy Chrome has already cached locally.</dd>
+          </dl>
+        </section>
+
+        <section class="doc-card" aria-labelledby="verify-heading">
+          <h2 id="verify-heading">Check any of this yourself</h2>
+          <p>
+            You do not have to take any of this on trust. The full source is public, and
+            <code>src/telemetry.js</code> is the only file in it that touches the network.
+          </p>
+          <div class="doc-actions">
+            <a
+              class="button button-ink"
+              href="https://github.com/filipelinsduarte/scrolling-stop"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2.8a9.2 9.2 0 0 0-2.9 17.9c.5.1.6-.2.6-.5v-1.8c-2.7.6-3.3-1.1-3.3-1.1-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 0 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.8.8.1-.7.4-1.1.7-1.4-2.2-.2-4.4-1.1-4.4-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.2.1-2.5 0 0 .8-.3 2.5 1a8.7 8.7 0 0 1 4.6 0c1.8-1.2 2.5-1 2.5-1 .5 1.3.2 2.2.1 2.5.6.7 1 1.5 1 2.5 0 3.5-2.2 4.3-4.4 4.6.4.3.7.9.7 1.8v2.5c0 .4.2.6.7.5A9.2 9.2 0 0 0 12 2.8Z"></path>
+              </svg>
+              Read the source
+            </a>
+          </div>
+        </section>
+
+        <section class="doc-card" aria-labelledby="contact-heading">
+          <h2 id="contact-heading">Questions or a correction</h2>
+          <p>
+            Open an issue on the repository, or write to
+            <a href="mailto:filipe@aipeekaboo.com">filipe@aipeekaboo.com</a>. If this policy
+            changes, the date at the top changes with it and the change appears in the
+            repository's history.
+          </p>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-inner">
+        <a class="brand footer-brand" href="/">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span></span>
+          <span>Scrolling Stop</span>
+        </a>
+        <p>Open-source attention guardrails for Chrome.</p>
+        <div class="footer-links">
+          <a href="privacy">Privacy</a>
+          <a href="https://github.com/filipelinsduarte/scrolling-stop">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2.8a9.2 9.2 0 0 0-2.9 17.9c.5.1.6-.2.6-.5v-1.8c-2.7.6-3.3-1.1-3.3-1.1-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 0 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.8.8.1-.7.4-1.1.7-1.4-2.2-.2-4.4-1.1-4.4-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.2.1-2.5 0 0 .8-.3 2.5 1a8.7 8.7 0 0 1 4.6 0c1.8-1.2 2.5-1 2.5-1 .5 1.3.2 2.2.1 2.5.6.7 1 1.5 1 2.5 0 3.5-2.2 4.3-4.4 4.6.4.3.7.9.7 1.8v2.5c0 .4.2.6.7.5A9.2 9.2 0 0 0 12 2.8Z"></path>
+            </svg>
+            GitHub
+          </a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

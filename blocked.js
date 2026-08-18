@@ -29,14 +29,14 @@ function requireElement(id) {
 async function sendMessage(message) {
   const response = await chrome.runtime.sendMessage(message);
   if (!response?.ok) {
-    throw new Error(response?.error || "Scroll Stop could not complete that action.");
+    throw new Error(response?.error || "Scrolling Stop could not complete that action.");
   }
   return response.data;
 }
 
 function showNotice(element, message) {
   if (!element) {
-    console.warn("[Scroll Stop] Notice element is missing.");
+    console.warn("[Scrolling Stop] Notice element is missing.");
     return;
   }
   element.textContent = message;
@@ -295,7 +295,7 @@ async function pauseBlocking(pauseButton, notice) {
     window.setTimeout(openUnlockedSite, 350);
   } catch (error) {
     const errorMessage = error.message === "Unknown extension action."
-      ? "Chrome is still running an older Scroll Stop worker. Reload Scroll Stop once in chrome://extensions, then try again."
+      ? "Chrome is still running an older Scrolling Stop worker. Reload Scrolling Stop once in chrome://extensions, then try again."
       : error.message;
     showNotice(notice, errorMessage);
     pauseButton.disabled = false;
@@ -306,7 +306,7 @@ async function bootStep(label, task) {
   try {
     await task();
   } catch (error) {
-    console.error(`[Scroll Stop] ${label} failed`, error);
+    console.error(`[Scrolling Stop] ${label} failed`, error);
   }
 }
 

@@ -1,11 +1,11 @@
 ---
 name: install-scroll-stop
-description: Install, update, customize, or troubleshoot the open-source Scroll Stop Manifest V3 Chrome extension. Use when a user wants an AI agent to download Scroll Stop, prepare it for Chrome's Load unpacked flow, change default blocked websites or focus behavior, verify the extension, update an existing local copy, or fix a stale toolbar icon.
+description: Install, update, customize, or troubleshoot the open-source Scrolling Stop Manifest V3 Chrome extension. Use when a user wants an AI agent to download Scrolling Stop, prepare it for Chrome's Load unpacked flow, change default blocked websites or focus behavior, verify the extension, update an existing local copy, or fix a stale toolbar icon.
 ---
 
-# Install Scroll Stop
+# Install Scrolling Stop
 
-Install Scroll Stop from its canonical repository and leave the user with a verified local folder that Chrome can load unpacked.
+Install Scrolling Stop from its canonical repository and leave the user with a verified local folder that Chrome can load unpacked.
 
 ## Get the source
 
@@ -16,7 +16,7 @@ Use the exact repository URL:
 1. Ask for a destination only if the user has not indicated one and choosing could overwrite an existing folder.
 2. If the repository is absent, clone it into a normal user-owned directory.
 3. If it already exists, inspect `git status` before updating. Preserve local changes. Use a fast-forward-only pull only when the worktree is clean.
-4. Never request an API key, account credential, or secret. Scroll Stop does not need one.
+4. Never request an API key, account credential, or secret. Scrolling Stop does not need one.
 
 ## Verify the extension folder
 
@@ -37,8 +37,8 @@ Run `npm run verify` when an isolated Chromium instance is available. Do not tre
 2. Ask the user to enable **Developer mode**.
 3. Ask the user to click **Load unpacked**.
 4. Give the exact absolute path to the folder containing `manifest.json`.
-5. Ask the user to pin Scroll Stop from the Extensions menu.
-6. Confirm that LinkedIn or X redirects to the local Scroll Stop reminder.
+5. Ask the user to pin Scrolling Stop from the Extensions menu.
+6. Confirm that LinkedIn or X redirects to the local Scrolling Stop reminder.
 7. Confirm that an already-open blocked tab is redirected after blocking is enabled again.
 
 Do not modify the user's Chrome profile files directly. Chrome's extension picker and security confirmation remain user-controlled steps.
@@ -47,7 +47,7 @@ Do not modify the user's Chrome profile files directly. Chrome's extension picke
 
 Current versions use `images/icon-blue-v2-*.png`. Check that `manifest.json` references those filenames.
 
-Ask the user to click **Reload** on Scroll Stop in `chrome://extensions`. If Chrome still shows a cached orange icon, ask the user to remove the old unpacked extension entry and load the current folder again.
+Ask the user to click **Reload** on Scrolling Stop in `chrome://extensions`. If Chrome still shows a cached orange icon, ask the user to remove the old unpacked extension entry and load the current folder again.
 
 ## Customize only when requested
 

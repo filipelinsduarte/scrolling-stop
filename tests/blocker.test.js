@@ -90,6 +90,11 @@ describe("getEffectiveSettings", () => {
       estimatedMinutesSaved: 0,
       blockedByDomain: {},
     },
+    telemetry: {
+      enabled: true,
+      clientId: "",
+      reportedVersion: "",
+    },
   };
 
   it("uses safe defaults when storage is empty", () => {
@@ -115,6 +120,11 @@ describe("getEffectiveSettings", () => {
         focusReturns: 0,
         estimatedMinutesSaved: 0,
         blockedByDomain: {},
+      },
+       telemetry: {
+        enabled: true,
+        clientId: "",
+        reportedVersion: "",
       },
     });
   });
